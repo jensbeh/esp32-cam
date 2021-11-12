@@ -90,6 +90,11 @@ void OV2640::setJpegQuality(int jpeg_quality) {
     cam_config.jpeg_quality = jpeg_quality;
 }
 
+void OV2640::setBrightness(int newBrightness) {
+    sensor_t * s = esp_camera_sensor_get();
+    s->set_brightness(s, newBrightness);     // -2 to 2
+}
+
 pixformat_t OV2640::getPixelFormat() {
     return cam_config.pixel_format;
 }

@@ -17,6 +17,7 @@ public:
 
     void setFrameSize(framesize_t size);
     void setJpegQuality(int jpeg_quality);
+    void setBrightness(int newBrightness);
     void setPixelFormat(pixformat_t format);
 
 private:

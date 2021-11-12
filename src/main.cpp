@@ -103,7 +103,16 @@ void handle_WS(uint8_t num, uint8_t * payload) {
   // uint8_t to string -> (char *) payload
 
   String message = (char *)payload;
-  webSocketServer.sendTXT(num, message);
+  Serial.println(message);
+  Serial.println(message.indexOf("brightness"));
+  if (message.indexOf("brightness") != -1) {
+    //camControls/brightness=1 -> -2 to 2
+    String value = message.substring(message.indexOf("=") + 1, message.length());
+    int newBrightness = atoi(value.c_str());
+    Serial.println(newBrightness);
+    cam.setBrightness(newBrightness);
+    webSocketServer.sendTXT(num, "brightness set to " + newBrightness);
+  }
 }
 
 // is called when receiving any webSocket message
@@ -138,7 +147,6 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
     // echo text message back to client
     case WStype_TEXT: {
       Serial.printf("[%u] Text: %s\n", num, payload);
-      webSocketServer.sendTXT(num, payload);
       handle_WS(num, payload);
     }
     break;
