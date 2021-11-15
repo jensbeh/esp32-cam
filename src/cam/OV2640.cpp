@@ -95,6 +95,11 @@ void OV2640::setBrightness(int newBrightness) {
     s->set_brightness(s, newBrightness);     // -2 to 2
 }
 
+int8_t OV2640::getBrightness() {
+    sensor_t * s = esp_camera_sensor_get();
+    return s->status.brightness;
+}
+
 pixformat_t OV2640::getPixelFormat() {
     return cam_config.pixel_format;
 }

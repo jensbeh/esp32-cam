@@ -1,5 +1,6 @@
 #include "cam/OV2640.h"
 #include "wifi_settings.h"
+#include "constants.h"
 
 #include <WebServer.h>
 #include <WiFi.h>
@@ -90,14 +91,14 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
   String message = (char *)payload;
   Serial.println(message);
-  Serial.println(message.indexOf("brightness"));
-  if (message.indexOf("brightness") != -1) {
+  if (message.indexOf(CAM_CONTROLS_PATH) != -1) {
     //camControls/brightness=1 -> -2 to 2
     String value = message.substring(message.indexOf("=") + 1, message.length());
     int newBrightness = atoi(value.c_str());
-    Serial.println(newBrightness);
     cam.setBrightness(newBrightness);
-    webSocketServer.sendTXT(num, "brightness set to " + newBrightness);
+
+    String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
+    webSocketServer.sendTXT(num, txBrightness);
   }
 }
 
@@ -118,6 +119,11 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
         Serial.printf("Payload from %s; ", payload);
         Serial.printf("Type from %u; ", type);
         Serial.printf("Length from %u\n", length);
+
+        // send camera settings here
+        String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
+        Serial.println(txBrightness);
+        webSocketServer.sendTXT(num, txBrightness);
       }
       break;
 
@@ -200,16 +206,16 @@ void setup() {
   Serial.println(ip);
   Serial.print("Stream Link: http://");
   Serial.print(ip);
-  Serial.println("/stream");
+  Serial.println(STREAM_PATH);
   Serial.print("Capture Link: http://");
   Serial.print(ip);
-  Serial.println("/capture");
+  Serial.println(CAPTURE_PATH);
   Serial.println("Test Send Link: http://192.168.188.45/test?Test123=blablabla");
 
   // setup webServer
-  webServer.on("/stream", HTTP_GET, handle_new_streamClient);
-  webServer.on("/capture", HTTP_GET, handle_jpg);
-  webServer.on("/test", HTTP_GET, handle_test); // https://techtutorialsx.com/2016/10/22/esp8266-webserver-getting-query-parameters/
+  webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
+  webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
+  webServer.on(TEST_PATH, HTTP_GET, handle_test); // https://techtutorialsx.com/2016/10/22/esp8266-webserver-getting-query-parameters/
   webServer.onNotFound(handleNotFound);
   webServer.begin();
 

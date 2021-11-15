@@ -7,13 +7,14 @@ public:
     };
 
     esp_err_t init();
-    void makeFrameBuffer(void);
-    size_t getSize(void);
-    uint8_t *getFrameBuffer(void);
-    int getWidth(void);
-    int getHeight(void);
-    framesize_t getFrameSize(void);
-    pixformat_t getPixelFormat(void);
+    void makeFrameBuffer();
+    size_t getSize();
+    uint8_t *getFrameBuffer();
+    int getWidth();
+    int getHeight();
+    framesize_t getFrameSize();
+    pixformat_t getPixelFormat();
+    int8_t getBrightness();
 
     void setFrameSize(framesize_t size);
     void setJpegQuality(int jpeg_quality);
