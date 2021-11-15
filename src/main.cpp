@@ -21,9 +21,9 @@ WebServer webServer(80);
 WebSocketsServer webSocketServer = WebSocketsServer(81);
 
 // handling multiple clients
-WiFiClient clients[2];
-int clientsCounter = 0;
+std::vector<WiFiClient> clientsVector;
 
+// stream header
 const char HEADER[] = "HTTP/1.1 200 OK\r\n" \
                       "Access-Control-Allow-Origin: *\r\n" \
                       "Content-Type: multipart/x-mixed-replace; boundary=123456789000000000000987654321\r\n";
@@ -33,41 +33,25 @@ const int hdrLen = strlen(HEADER);
 const int bdrLen = strlen(BOUNDARY);
 const int cntLen = strlen(CTNTTYPE);
 
-void handle_jpg_stream() {
-  char buf[32];
-  int s;
-
-  clients[clientsCounter] = webServer.client();
-
-  clients[clientsCounter].write(HEADER, hdrLen);
-  clients[clientsCounter].write(BOUNDARY, bdrLen);
-  //clientsCounter++;
-
-  while (true) {
-    //for (int i = 0; i < (sizeof(clients)/sizeof(WiFiClient)); i++) {
-        if (!clients[0].connected()) {
-        //   clientsCounter--;
-        //   clients[i] = NULL;
-           break;
-        }
-        cam.makeFrameBuffer();
-        s = cam.getSize();
-        clients[0].write(CTNTTYPE, cntLen);
-        sprintf( buf, "%d\r\n\r\n", s );
-        clients[0].write(buf, strlen(buf));
-        clients[0].write((char *)cam.getFrameBuffer(), s);
-        clients[0].write(BOUNDARY, bdrLen);
-    //}    
-
-    webServer.handleClient();
-    webSocketServer.loop();
-  }
-}
-
+// picture header
 const char JHEADER[] = "HTTP/1.1 200 OK\r\n" \
                        "Content-disposition: inline; filename=capture.jpg\r\n" \
                        "Content-type: image/jpeg\r\n\r\n";
 const int jhdLen = strlen(JHEADER);
+
+void handle_new_streamClient() {
+  //clients[clientsCounter] = webServer.client();
+  WiFiClient wifiClient = webServer.client();
+  wifiClient.write(HEADER, hdrLen);
+  wifiClient.write(BOUNDARY, bdrLen);
+
+  // set new client to vector
+  clientsVector.push_back(wifiClient);
+  //clientsCounter++;
+
+  Serial.print("New one connected - ");
+  Serial.println(wifiClient.remoteIP());
+}
 
 void handle_jpg() {
   WiFiClient client = webServer.client();
@@ -86,6 +70,7 @@ void handle_test() {
 
 }
 
+// handle invalid webServer comands
 void handleNotFound() {
   String message = "Server is running!\n\n";
   message += "URI: ";
@@ -98,6 +83,7 @@ void handleNotFound() {
   webServer.send(200, "text / plain", message);
 }
 
+// handle incoming WS commands
 void handle_WS(uint8_t num, uint8_t * payload) {
   // string to uint8_t -> "string".getBytes(); Maybe with string length
   // uint8_t to string -> (char *) payload
@@ -163,7 +149,39 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
   }
 }
 
+// handle disconnected clients and remove from clientsVector
+void checkIfClientsDisconnect() {
+  std::vector<int> disconnectedClients;
+  for (std::vector<WiFiClient>::iterator i = clientsVector.begin(); i != clientsVector.end(); ++i) {
+    // need the index to erase by the index
+    if (!i.base()->connected()) {
+      disconnectedClients.push_back(i - clientsVector.begin());
+    }
+  }
 
+  for (int id : disconnectedClients) {
+    // remove all clients by id
+    clientsVector.erase(clientsVector.begin() + id);
+  }
+  disconnectedClients.clear();
+}
+
+// send frameBuffer to all clients
+void handle_streams() {
+  char buf[32];
+  int s;
+
+  cam.makeFrameBuffer();
+  s = cam.getSize();
+
+  for (WiFiClient client : clientsVector) {
+      client.write(CTNTTYPE, cntLen);
+      sprintf( buf, "%d\r\n\r\n", s );
+      client.write(buf, strlen(buf));
+      client.write((char *)cam.getFrameBuffer(), s);
+      client.write(BOUNDARY, bdrLen);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -189,7 +207,7 @@ void setup() {
   Serial.println("Test Send Link: http://192.168.188.45/test?Test123=blablabla");
 
   // setup webServer
-  webServer.on("/stream", HTTP_GET, handle_jpg_stream);
+  webServer.on("/stream", HTTP_GET, handle_new_streamClient);
   webServer.on("/capture", HTTP_GET, handle_jpg);
   webServer.on("/test", HTTP_GET, handle_test); // https://techtutorialsx.com/2016/10/22/esp8266-webserver-getting-query-parameters/
   webServer.onNotFound(handleNotFound);
@@ -203,6 +221,12 @@ void setup() {
 void loop() {
   // handle webServer data
   webServer.handleClient();
+
+  // handle stream with all clients
+  if (clientsVector.size() > 0) {
+    handle_streams();
+    checkIfClientsDisconnect();
+  }
 
   // handle webSocket data
   webSocketServer.loop();
