@@ -8,3 +8,4 @@ static String TEST_PATH = "/test";
 // Controls
 static String CAM_CONTROLS_PATH = "camControls/";
 static String BRIGHTNESS_PATH = "brightness=";
+static String CONTRAST_PATH = "contrast=";

@@ -22,7 +22,8 @@ WebServer webServer(80);
 WebSocketsServer webSocketServer = WebSocketsServer(81);
 
 // handling multiple clients
-std::vector<WiFiClient> clientsVector;
+std::vector<WiFiClient> wiFiClientsVector;
+std::vector<uint8_t> clientIdsVector;
 
 // stream header
 const char HEADER[] = "HTTP/1.1 200 OK\r\n" \
@@ -47,7 +48,7 @@ void handle_new_streamClient() {
   wifiClient.write(BOUNDARY, bdrLen);
 
   // set new client to vector
-  clientsVector.push_back(wifiClient);
+  wiFiClientsVector.push_back(wifiClient);
   //clientsCounter++;
 
   Serial.print("New one connected - ");
@@ -68,7 +69,6 @@ void handle_test() {
 
   if (!client.connected()) return;
   Serial.println(webServer.arg("Test123")); //http://192.168.188.45/test?Test123=blablabla
-
 }
 
 // handle invalid webServer comands
@@ -92,14 +92,47 @@ void handle_WS(uint8_t num, uint8_t * payload) {
   String message = (char *)payload;
   Serial.println(message);
   if (message.indexOf(CAM_CONTROLS_PATH) != -1) {
-    //camControls/brightness=1 -> -2 to 2
-    String value = message.substring(message.indexOf("=") + 1, message.length());
-    int newBrightness = atoi(value.c_str());
-    cam.setBrightness(newBrightness);
 
-    String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
-    webSocketServer.sendTXT(num, txBrightness);
+    //camControls/brightness=1 -> -2 to 2
+    if (message.indexOf(BRIGHTNESS_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int newBrightness = atoi(value.c_str());
+      cam.setBrightness(newBrightness);
+
+      String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
+      for (uint8_t numId : clientIdsVector) {
+        webSocketServer.sendTXT(numId, txBrightness);
+      }
+    }
+
+    else if (message.indexOf(CONTRAST_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int newContrast = atoi(value.c_str());
+      cam.setContrast(newContrast);
+
+      String txContrast = CAM_CONTROLS_PATH + CONTRAST_PATH + String(cam.getContrast());
+      for (uint8_t numId : clientIdsVector) {
+        webSocketServer.sendTXT(numId, txContrast);
+      }
+    }
   }
+}
+
+// handle disconnected clients and remove from wiFiClientsVector
+void removeWSClient(uint8_t num) {
+  int index = 0;
+  for (uint8_t numId : clientIdsVector) {
+    if (numId == num) {
+      break;
+    } else {
+      index++;
+    }
+  }
+
+  // remove all clients by id
+  clientIdsVector.erase(clientIdsVector.begin() + index);
+  
+  Serial.println("BLAAA2: " + String(clientIdsVector.size()));
 }
 
 // is called when receiving any webSocket message
@@ -113,25 +146,31 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
   switch(type) {
     // new client has connected
     case WStype_CONNECTED: {
-        IPAddress ip = webSocketServer.remoteIP(num);
-        Serial.printf("[%u] Connection from ", num);
-        Serial.println(ip.toString());
-        Serial.printf("Payload from %s; ", payload);
-        Serial.printf("Type from %u; ", type);
-        Serial.printf("Length from %u\n", length);
+      IPAddress ip = webSocketServer.remoteIP(num);
+      Serial.printf("[%u] Connection from ", num);
+      Serial.println(ip.toString());
 
-        // send camera settings here
-        String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
-        Serial.println(txBrightness);
-        webSocketServer.sendTXT(num, txBrightness);
+      // add new clientId to clientIdsVector
+      clientIdsVector.push_back(num);
+      Serial.println("BLAAA1: " + String(clientIdsVector.size()));
+
+      // send camera settings here
+      // brightness
+      String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
+      webSocketServer.sendTXT(num, txBrightness);
+      // contrast
+      String txContrast = CAM_CONTROLS_PATH + CONTRAST_PATH + String(cam.getContrast());
+      webSocketServer.sendTXT(num, txContrast);
       }
       break;
 
     // client has disconnected
     case WStype_DISCONNECTED: {
       IPAddress ip = webSocketServer.remoteIP(num);
-      Serial.print(ip.toString());
-      Serial.printf(" has disconnected!\n");
+      Serial.printf("Client has disconnected!\n");
+
+      // remove clientId from clientIdsVector
+      removeWSClient(num);
 
       }
       break;
@@ -155,19 +194,19 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
   }
 }
 
-// handle disconnected clients and remove from clientsVector
+// handle disconnected clients and remove from wiFiClientsVector
 void checkIfClientsDisconnect() {
   std::vector<int> disconnectedClients;
-  for (std::vector<WiFiClient>::iterator i = clientsVector.begin(); i != clientsVector.end(); ++i) {
+  for (std::vector<WiFiClient>::iterator i = wiFiClientsVector.begin(); i != wiFiClientsVector.end(); ++i) {
     // need the index to erase by the index
     if (!i.base()->connected()) {
-      disconnectedClients.push_back(i - clientsVector.begin());
+      disconnectedClients.push_back(i - wiFiClientsVector.begin());
     }
   }
 
   for (int id : disconnectedClients) {
     // remove all clients by id
-    clientsVector.erase(clientsVector.begin() + id);
+    wiFiClientsVector.erase(wiFiClientsVector.begin() + id);
   }
   disconnectedClients.clear();
 }
@@ -180,7 +219,7 @@ void handle_streams() {
   cam.makeFrameBuffer();
   s = cam.getSize();
 
-  for (WiFiClient client : clientsVector) {
+  for (WiFiClient client : wiFiClientsVector) {
       client.write(CTNTTYPE, cntLen);
       sprintf( buf, "%d\r\n\r\n", s );
       client.write(buf, strlen(buf));
@@ -215,7 +254,7 @@ void setup() {
   // setup webServer
   webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
   webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
-  webServer.on(TEST_PATH, HTTP_GET, handle_test); // https://techtutorialsx.com/2016/10/22/esp8266-webserver-getting-query-parameters/
+  webServer.on(TEST_PATH, HTTP_GET, handle_test);
   webServer.onNotFound(handleNotFound);
   webServer.begin();
 
@@ -229,7 +268,7 @@ void loop() {
   webServer.handleClient();
 
   // handle stream with all clients
-  if (clientsVector.size() > 0) {
+  if (wiFiClientsVector.size() > 0) {
     handle_streams();
     checkIfClientsDisconnect();
   }

@@ -15,11 +15,13 @@ public:
     framesize_t getFrameSize();
     pixformat_t getPixelFormat();
     int8_t getBrightness();
+    int8_t getContrast();
 
     void setFrameSize(framesize_t size);
     void setJpegQuality(int jpeg_quality);
-    void setBrightness(int newBrightness);
     void setPixelFormat(pixformat_t format);
+    void setBrightness(int newBrightness);
+    void setContrast(int newContrast);
 
 private:
     void checkForEmptyFB();

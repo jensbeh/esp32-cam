@@ -100,6 +100,16 @@ int8_t OV2640::getBrightness() {
     return s->status.brightness;
 }
 
+void OV2640::setContrast(int newContrast) {
+    sensor_t * s = esp_camera_sensor_get();
+    s->set_contrast(s, newContrast);     // -2 to 2
+}
+
+int8_t OV2640::getContrast() {
+    sensor_t * s = esp_camera_sensor_get();
+    return s->status.contrast;
+}
+
 pixformat_t OV2640::getPixelFormat() {
     return cam_config.pixel_format;
 }
