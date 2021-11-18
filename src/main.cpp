@@ -96,7 +96,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
     //camControls/brightness=1 -> -2 to 2
     if (message.indexOf(BRIGHTNESS_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      int newBrightness = atoi(value.c_str());
+      int8_t newBrightness = atoi(value.c_str());
       cam.setBrightness(newBrightness);
 
       String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
@@ -107,7 +107,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
     else if (message.indexOf(CONTRAST_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      int newContrast = atoi(value.c_str());
+      int8_t newContrast = atoi(value.c_str());
       cam.setContrast(newContrast);
 
       String txContrast = CAM_CONTROLS_PATH + CONTRAST_PATH + String(cam.getContrast());
