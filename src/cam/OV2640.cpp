@@ -119,6 +119,7 @@ uint8_t OV2640::getQuality() {
     return s->status.quality;
 }
 
+// set brightness
 void OV2640::setBrightness(int8_t newBrightness) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_brightness(s, newBrightness); // -2 to 2
@@ -128,6 +129,7 @@ int8_t OV2640::getBrightness() {
     return s->status.brightness;
 }
 
+// set contrast
 void OV2640::setContrast(int8_t newContrast) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_contrast(s, newContrast); // -2 to 2
@@ -137,6 +139,7 @@ int8_t OV2640::getContrast() {
     return s->status.contrast;
 }
 
+// set saturation
 void OV2640::setSaturation(int8_t newSaturation) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_saturation(s, newSaturation); // -2 to 2
@@ -164,6 +167,7 @@ uint8_t OV2640::getDenoise() {
     return s->status.sharpness;
 }
 
+// set a special effect
 void OV2640::setSpecialEffect(uint8_t newSpecialEffect) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_special_effect(s, newSpecialEffect); // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
@@ -173,6 +177,7 @@ uint8_t OV2640::getSpecialEffect() {
     return s->status.special_effect;
 }
 
+// set white balance
 void OV2640::setWhitebal(int whitebal) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_whitebal(s, whitebal); // 0 = disable , 1 = enable
@@ -182,6 +187,7 @@ void OV2640::setWhitebal(int whitebal) {
 //    return s->status.whitebal;
 //}
 
+// set white balance mode
 void OV2640::setWbMode(uint8_t newWbMode) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_wb_mode(s, newWbMode); // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
@@ -191,6 +197,7 @@ uint8_t OV2640::getWbMode() {
     return s->status.wb_mode;
 }
 
+// set white balance gain
 void OV2640::setAwbGain(uint8_t awbGain) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_awb_gain(s, awbGain); // 0 = disable , 1 = enable
@@ -200,6 +207,7 @@ uint8_t OV2640::getAwbGain() {
     return s->status.awb_gain;
 }
 
+// set exposure control
 void OV2640::setExposureCtrl(int exposureCtrl) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_exposure_ctrl(s, exposureCtrl); // 0 = disable , 1 = enable
@@ -290,6 +298,7 @@ uint8_t OV2640::getRawGma() {
     return s->status.raw_gma;
 }
 
+// set lens correction
 void OV2640::setLenc(uint8_t lenc) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_lenc(s, lenc); // 0 = disable , 1 = enable
@@ -299,6 +308,7 @@ uint8_t OV2640::getLenc() {
     return s->status.lenc;
 }
 
+// horizontal mirror
 void OV2640::setHmirror(uint8_t hMirror) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_hmirror(s, hMirror); // 0 = disable , 1 = enable
@@ -308,6 +318,7 @@ uint8_t OV2640::getHmirror() {
     return s->status.hmirror;
 }
 
+// vertical flip
 void OV2640::setVflip(uint8_t vFlip) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_vflip(s, vFlip); // 0 = disable , 1 = enable
@@ -326,6 +337,7 @@ uint8_t OV2640::getDcw() {
     return s->status.dcw;
 }
 
+// set a colorbar
 void OV2640::setColorbar(uint8_t colorbar) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_colorbar(s, colorbar); // 0 = disable , 1 = enable

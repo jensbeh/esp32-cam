@@ -51,7 +51,7 @@ void handle_new_streamClient() {
   wiFiClientsVector.push_back(wifiClient);
   //clientsCounter++;
 
-  Serial.print("New one connected - ");
+  Serial.print("New WebServerClient connected - ");
   Serial.println(wifiClient.remoteIP());
 }
 
@@ -84,6 +84,12 @@ void handleNotFound() {
   webServer.send(200, "text / plain", message);
 }
 
+void sendToWebSocketClients(String message) {
+  for (uint8_t numId : clientIdsVector) {
+    webSocketServer.sendTXT(numId, message);
+  }
+}
+
 // handle incoming WS commands
 void handle_WS(uint8_t num, uint8_t * payload) {
   // string to uint8_t -> "string".getBytes(); Maybe with string length
@@ -91,29 +97,208 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
   String message = (char *)payload;
   Serial.println(message);
+  // camControls/
   if (message.indexOf(CAM_CONTROLS_PATH) != -1) {
 
-    //camControls/brightness=1 -> -2 to 2
+    //brightness= -> -2 to 2
     if (message.indexOf(BRIGHTNESS_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
       int8_t newBrightness = atoi(value.c_str());
       cam.setBrightness(newBrightness);
 
-      String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
-      for (uint8_t numId : clientIdsVector) {
-        webSocketServer.sendTXT(numId, txBrightness);
-      }
+      sendToWebSocketClients(message);
     }
-
+    //contrast= -> -2 to 2
     else if (message.indexOf(CONTRAST_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
       int8_t newContrast = atoi(value.c_str());
       cam.setContrast(newContrast);
 
-      String txContrast = CAM_CONTROLS_PATH + CONTRAST_PATH + String(cam.getContrast());
-      for (uint8_t numId : clientIdsVector) {
-        webSocketServer.sendTXT(numId, txContrast);
-      }
+      sendToWebSocketClients(message);
+    }
+    //quality= -> 0 - 63
+    else if (message.indexOf(QUALITY_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t newQuality = atoi(value.c_str());
+      cam.setQuality(newQuality);
+
+      sendToWebSocketClients(message);
+    }
+    //saturation= -> -2 to 2
+    else if (message.indexOf(SATURATION_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int8_t newSaturation = atoi(value.c_str());
+      cam.setSaturation(newSaturation);
+
+      sendToWebSocketClients(message);
+    }
+    //sharpness= -> -2 to 2
+    else if (message.indexOf(SHARPNESS_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int8_t newSharpness = atoi(value.c_str());
+      cam.setSharpness(newSharpness);
+
+      sendToWebSocketClients(message);
+    }
+    //denoise= -> ???
+    else if (message.indexOf(DENOISE_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t newDenoise = atoi(value.c_str());
+      cam.setDenoise(newDenoise);
+
+      sendToWebSocketClients(message);
+    }
+    //specialEffect= -> 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+    else if (message.indexOf(SPECIAL_EFFECT_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t newSpecialEffect = atoi(value.c_str());
+      cam.setSpecialEffect(newSpecialEffect);
+
+      sendToWebSocketClients(message);
+    }
+    //whitebal= -> 0 = disable , 1 = enable
+    else if (message.indexOf(WHITEBAL_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int whitebal = atoi(value.c_str());
+      cam.setWhitebal(whitebal);
+
+      sendToWebSocketClients(message);
+    }
+    //wbMode= -> 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+    else if (message.indexOf(WB_MODE_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t newWbMode = atoi(value.c_str());
+      cam.setWbMode(newWbMode);
+
+      sendToWebSocketClients(message);
+    }
+    //awbGain= -> 0 = disable , 1 = enable
+    else if (message.indexOf(AWB_GAIN_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t awbGain = atoi(value.c_str());
+      cam.setAwbGain(awbGain);
+
+      sendToWebSocketClients(message);
+    }
+    //exposureCtrl= -> 0 = disable , 1 = enable
+    else if (message.indexOf(EXPOSURE_CTRL_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int exposureCtrl = atoi(value.c_str());
+      cam.setExposureCtrl(exposureCtrl);
+
+      sendToWebSocketClients(message);
+    }
+    //aec2= -> 0 = disable , 1 = enable
+    else if (message.indexOf(AEC2_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t aec2 = atoi(value.c_str());
+      cam.setAec2(aec2);
+
+      sendToWebSocketClients(message);
+    }
+    //aeLevel= -> -2 to 2
+    else if (message.indexOf(AE_LEVEL_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int8_t newAeLevel = atoi(value.c_str());
+      cam.setAeLevel(newAeLevel);
+
+      sendToWebSocketClients(message);
+    }
+    //aecValue= -> 0 - 1200
+    else if (message.indexOf(AEC_VALUE_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint16_t newAecValue = atoi(value.c_str());
+      cam.setAecValue(newAecValue);
+
+      sendToWebSocketClients(message);
+    }
+    //gainCtrl= -> 0 = disable , 1 = enable
+    else if (message.indexOf(GAIN_CTRL_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int gainCtrl = atoi(value.c_str());
+      cam.setGainCtrl(gainCtrl);
+
+      sendToWebSocketClients(message);
+    }
+    //agcGain= -> 0 - 30
+    else if (message.indexOf(AGC_GAIN_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t newAgcGain = atoi(value.c_str());
+      cam.setAgcGain(newAgcGain);
+
+      sendToWebSocketClients(message);
+    }
+    //gainceiling= -> 0 to 6
+    else if (message.indexOf(GAINCEILING_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t newGainceiling = atoi(value.c_str());
+      cam.setGainceiling(newGainceiling);
+
+      sendToWebSocketClients(message);
+    }
+    //bpc= -> 0 = disable , 1 = enable
+    else if (message.indexOf(BPC_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t bpc = atoi(value.c_str());
+      cam.setBpc(bpc);
+
+      sendToWebSocketClients(message);
+    }
+    //wpc= -> 0 = disable , 1 = enable
+    else if (message.indexOf(WPC_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t wpc = atoi(value.c_str());
+      cam.setWpc(wpc);
+
+      sendToWebSocketClients(message);
+    }
+    //rawGma= -> 0 = disable , 1 = enable
+    else if (message.indexOf(RAW_GMA_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t rawGma = atoi(value.c_str());
+      cam.setRawGma(rawGma);
+
+      sendToWebSocketClients(message);
+    }
+    //lenc= -> 0 = disable , 1 = enable
+    else if (message.indexOf(LENC_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t lenc = atoi(value.c_str());
+      cam.setLenc(lenc);
+
+      sendToWebSocketClients(message);
+    }
+    //hmirror= -> 0 = disable , 1 = enable
+    else if (message.indexOf(HMIRROR_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t hMirror = atoi(value.c_str());
+      cam.setHmirror(hMirror);
+
+      sendToWebSocketClients(message);
+    }
+    //vflip= -> 0 = disable , 1 = enable
+    else if (message.indexOf(VFLIP_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t vFlip = atoi(value.c_str());
+      cam.setVflip(vFlip);
+
+      sendToWebSocketClients(message);
+    }
+    //dcw= -> 0 = disable , 1 = enable
+    else if (message.indexOf(DCW_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t dcw = atoi(value.c_str());
+      cam.setDcw(dcw);
+
+      sendToWebSocketClients(message);
+    }
+    //colorbar= -> 0 = disable , 1 = enable
+    else if (message.indexOf(COLORBAR_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t colorbar = atoi(value.c_str());
+      cam.setColorbar(colorbar);
+
+      sendToWebSocketClients(message);
     }
   }
 }
@@ -131,8 +316,6 @@ void removeWSClient(uint8_t num) {
 
   // remove all clients by id
   clientIdsVector.erase(clientIdsVector.begin() + index);
-  
-  Serial.println("BLAAA2: " + String(clientIdsVector.size()));
 }
 
 // is called when receiving any webSocket message
@@ -147,12 +330,12 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
     // new client has connected
     case WStype_CONNECTED: {
       IPAddress ip = webSocketServer.remoteIP(num);
-      Serial.printf("[%u] Connection from ", num);
+      Serial.printf("[%u] New WSClient Connection from ", num);
       Serial.println(ip.toString());
 
       // add new clientId to clientIdsVector
       clientIdsVector.push_back(num);
-      Serial.println("BLAAA1: " + String(clientIdsVector.size()));
+      Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
 
       // send camera settings here
       // brightness
@@ -167,11 +350,11 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
     // client has disconnected
     case WStype_DISCONNECTED: {
       IPAddress ip = webSocketServer.remoteIP(num);
-      Serial.printf("Client has disconnected!\n");
 
       // remove clientId from clientIdsVector
       removeWSClient(num);
-
+      Serial.printf("WSClient has disconnected!\n");
+      Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
       }
       break;
 
