@@ -100,22 +100,15 @@ void handle_WS(uint8_t num, uint8_t * payload) {
   // camControls/
   if (message.indexOf(CAM_CONTROLS_PATH) != -1) {
 
-    //brightness= -> -2 to 2
-    if (message.indexOf(BRIGHTNESS_PATH) != -1) {
+    //framesize= -> 0,3,4,5,6,7,8,9,10
+    if (message.indexOf(FRAMESIZE_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      int8_t newBrightness = atoi(value.c_str());
-      cam.setBrightness(newBrightness);
+      int8_t newFramesize = atoi(value.c_str());
+      cam.setFrameSize((framesize_t)newFramesize);
 
       sendToWebSocketClients(message);
     }
-    //contrast= -> -2 to 2
-    else if (message.indexOf(CONTRAST_PATH) != -1) {
-      String value = message.substring(message.indexOf("=") + 1, message.length());
-      int8_t newContrast = atoi(value.c_str());
-      cam.setContrast(newContrast);
 
-      sendToWebSocketClients(message);
-    }
     //quality= -> 0 - 63
     else if (message.indexOf(QUALITY_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -124,6 +117,25 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+
+    //brightness= -> -2 to 2
+    else if (message.indexOf(BRIGHTNESS_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int8_t newBrightness = atoi(value.c_str());
+      cam.setBrightness(newBrightness);
+
+      sendToWebSocketClients(message);
+    }
+
+    //contrast= -> -2 to 2
+    else if (message.indexOf(CONTRAST_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int8_t newContrast = atoi(value.c_str());
+      cam.setContrast(newContrast);
+
+      sendToWebSocketClients(message);
+    }
+
     //saturation= -> -2 to 2
     else if (message.indexOf(SATURATION_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -132,22 +144,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
-    //sharpness= -> -2 to 2
-    else if (message.indexOf(SHARPNESS_PATH) != -1) {
-      String value = message.substring(message.indexOf("=") + 1, message.length());
-      int8_t newSharpness = atoi(value.c_str());
-      cam.setSharpness(newSharpness);
 
-      sendToWebSocketClients(message);
-    }
-    //denoise= -> ???
-    else if (message.indexOf(DENOISE_PATH) != -1) {
-      String value = message.substring(message.indexOf("=") + 1, message.length());
-      uint8_t newDenoise = atoi(value.c_str());
-      cam.setDenoise(newDenoise);
-
-      sendToWebSocketClients(message);
-    }
     //specialEffect= -> 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
     else if (message.indexOf(SPECIAL_EFFECT_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -156,14 +153,25 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+
     //whitebal= -> 0 = disable , 1 = enable
-    else if (message.indexOf(WHITEBAL_PATH) != -1) {
+    else if (message.indexOf(WHITEBALANCE_STATE_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      int whitebal = atoi(value.c_str());
-      cam.setWhitebal(whitebal);
+      int whitebalState = atoi(value.c_str());
+      cam.setAutoWhiteBalanceState(whitebalState);
 
       sendToWebSocketClients(message);
     }
+
+    //awbGain= -> 0 = disable , 1 = enable
+    else if (message.indexOf(AUTOWB_GAIN_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      uint8_t autoWbGainState = atoi(value.c_str());
+      cam.setAutoWbGainState(autoWbGainState);
+
+      sendToWebSocketClients(message);
+    }
+
     //wbMode= -> 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
     else if (message.indexOf(WB_MODE_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -172,38 +180,16 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
-    //awbGain= -> 0 = disable , 1 = enable
-    else if (message.indexOf(AWB_GAIN_PATH) != -1) {
-      String value = message.substring(message.indexOf("=") + 1, message.length());
-      uint8_t awbGain = atoi(value.c_str());
-      cam.setAwbGain(awbGain);
 
-      sendToWebSocketClients(message);
-    }
     //exposureCtrl= -> 0 = disable , 1 = enable
-    else if (message.indexOf(EXPOSURE_CTRL_PATH) != -1) {
+    else if (message.indexOf(EXPOSURE_CTRL_STATE_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      int exposureCtrl = atoi(value.c_str());
-      cam.setExposureCtrl(exposureCtrl);
+      int exposureCtrlState = atoi(value.c_str());
+      cam.setExposureCtrlState(exposureCtrlState);
 
       sendToWebSocketClients(message);
     }
-    //aec2= -> 0 = disable , 1 = enable
-    else if (message.indexOf(AEC2_PATH) != -1) {
-      String value = message.substring(message.indexOf("=") + 1, message.length());
-      uint8_t aec2 = atoi(value.c_str());
-      cam.setAec2(aec2);
 
-      sendToWebSocketClients(message);
-    }
-    //aeLevel= -> -2 to 2
-    else if (message.indexOf(AE_LEVEL_PATH) != -1) {
-      String value = message.substring(message.indexOf("=") + 1, message.length());
-      int8_t newAeLevel = atoi(value.c_str());
-      cam.setAeLevel(newAeLevel);
-
-      sendToWebSocketClients(message);
-    }
     //aecValue= -> 0 - 1200
     else if (message.indexOf(AEC_VALUE_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -212,14 +198,34 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
-    //gainCtrl= -> 0 = disable , 1 = enable
-    else if (message.indexOf(GAIN_CTRL_PATH) != -1) {
+
+    //aec2= -> 0 = disable , 1 = enable
+    else if (message.indexOf(AEC2_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      int gainCtrl = atoi(value.c_str());
-      cam.setGainCtrl(gainCtrl);
+      uint8_t aec2 = atoi(value.c_str());
+      cam.setAec2(aec2);
 
       sendToWebSocketClients(message);
     }
+    
+    //aeLevel= -> -2 to 2
+    else if (message.indexOf(AE_LEVEL_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int8_t newAeLevel = atoi(value.c_str());
+      cam.setAeLevel(newAeLevel);
+
+      sendToWebSocketClients(message);
+    }
+
+    //agc= -> 0 = disable , 1 = enable
+    else if (message.indexOf(AGC_CTRL_STATE_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      int acgCtrlState = atoi(value.c_str());
+      cam.setAgcCtrlState(acgCtrlState);
+
+      sendToWebSocketClients(message);
+    }
+
     //agcGain= -> 0 - 30
     else if (message.indexOf(AGC_GAIN_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -228,6 +234,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+
     //gainceiling= -> 0 to 6
     else if (message.indexOf(GAINCEILING_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -236,6 +243,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+
     //bpc= -> 0 = disable , 1 = enable
     else if (message.indexOf(BPC_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -244,6 +252,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+
     //wpc= -> 0 = disable , 1 = enable
     else if (message.indexOf(WPC_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -252,6 +261,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+
     //rawGma= -> 0 = disable , 1 = enable
     else if (message.indexOf(RAW_GMA_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -260,6 +270,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+
     //lenc= -> 0 = disable , 1 = enable
     else if (message.indexOf(LENC_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -268,30 +279,25 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+    
     //hmirror= -> 0 = disable , 1 = enable
     else if (message.indexOf(HMIRROR_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      uint8_t hMirror = atoi(value.c_str());
-      cam.setHmirror(hMirror);
+      uint8_t hMirrorState = atoi(value.c_str());
+      cam.setHmirrorState(hMirrorState);
 
       sendToWebSocketClients(message);
     }
+
     //vflip= -> 0 = disable , 1 = enable
     else if (message.indexOf(VFLIP_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
-      uint8_t vFlip = atoi(value.c_str());
-      cam.setVflip(vFlip);
+      uint8_t vFlipState = atoi(value.c_str());
+      cam.setVflipState(vFlipState);
 
       sendToWebSocketClients(message);
     }
-    //dcw= -> 0 = disable , 1 = enable
-    else if (message.indexOf(DCW_PATH) != -1) {
-      String value = message.substring(message.indexOf("=") + 1, message.length());
-      uint8_t dcw = atoi(value.c_str());
-      cam.setDcw(dcw);
 
-      sendToWebSocketClients(message);
-    }
     //colorbar= -> 0 = disable , 1 = enable
     else if (message.indexOf(COLORBAR_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
@@ -403,11 +409,12 @@ void handle_streams() {
   s = cam.getSize();
 
   for (WiFiClient client : wiFiClientsVector) {
-      client.write(CTNTTYPE, cntLen);
-      sprintf( buf, "%d\r\n\r\n", s );
-      client.write(buf, strlen(buf));
-      client.write((char *)cam.getFrameBuffer(), s);
-      client.write(BOUNDARY, bdrLen);
+    // when writing and disconnect there is a error in log
+    client.write(CTNTTYPE, cntLen);
+    sprintf( buf, "%d\r\n\r\n", s );
+    client.write(buf, strlen(buf));
+    client.write((char *)cam.getFrameBuffer(), s);
+    client.write(BOUNDARY, bdrLen);
   }
 }
 

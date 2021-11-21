@@ -86,15 +86,18 @@ pixformat_t OV2640::getPixelFormat() {
     return cam_config.pixel_format;
 }
 
+// set FrameSize
 void OV2640::setFrameSize(framesize_t size) {
     /*
-    FRAMESIZE_UXGA (1600 x 1200)
-    FRAMESIZE_QVGA (320 x 240)
-    FRAMESIZE_CIF (352 x 288)
-    FRAMESIZE_VGA (640 x 480)
-    FRAMESIZE_SVGA (800 x 600)
-    FRAMESIZE_XGA (1024 x 768)
-    FRAMESIZE_SXGA (1280 x 1024)
+    FRAMESIZE_UXGA (1600 x 1200) -> framesize=10
+    FRAMESIZE_SXGA (1280 x 1024) -> framesize=9
+    FRAMESIZE_XGA (1024 x 768) -> framesize=8
+    FRAMESIZE_SVGA (800 x 600) -> framesize=7
+    FRAMESIZE_VGA (640 x 480) -> framesize=6
+    FRAMESIZE_CIF (352 x 288) -> framesize=5
+    FRAMESIZE_QVGA (320 x 240) -> framesize=4
+    FRAMESIZE_HQVGA (240 x 176) -> framesize=3
+    FRAMESIZE_QQVGA (160 x 120) -> framesize=0
     */
     cam_config.frame_size = size;
 }
@@ -102,17 +105,9 @@ framesize_t OV2640::getFrameSize() {
     return cam_config.frame_size;
 }
 
-void OV2640::setJpegQuality(int jpeg_quality) {
-    //10-63 lower number means higher quality
-    cam_config.jpeg_quality = jpeg_quality;
-}
-int OV2640::getJpegQuality() {
-    return cam_config.jpeg_quality;
-}
-
 void OV2640::setQuality(uint8_t newQuality) {
     sensor_t * s = esp_camera_sensor_get();
-    s->set_quality(s, newQuality); //0 - 63
+    s->set_quality(s, newQuality); //10 - 63
 }
 uint8_t OV2640::getQuality() {
     sensor_t * s = esp_camera_sensor_get();
@@ -149,24 +144,6 @@ int8_t OV2640::getSaturation() {
     return s->status.saturation;
 }
 
-void OV2640::setSharpness(int8_t newSharpness) {
-    sensor_t * s = esp_camera_sensor_get();
-    s->set_sharpness(s, newSharpness); // -2 to 2
-}
-int8_t OV2640::getSharpness() {
-    sensor_t * s = esp_camera_sensor_get();
-    return s->status.sharpness;
-}
-
-void OV2640::setDenoise(uint8_t newDenoise) {
-    sensor_t * s = esp_camera_sensor_get();
-    s->set_denoise(s, newDenoise); // ???
-}
-uint8_t OV2640::getDenoise() {
-    sensor_t * s = esp_camera_sensor_get();
-    return s->status.sharpness;
-}
-
 // set a special effect
 void OV2640::setSpecialEffect(uint8_t newSpecialEffect) {
     sensor_t * s = esp_camera_sensor_get();
@@ -177,15 +154,21 @@ uint8_t OV2640::getSpecialEffect() {
     return s->status.special_effect;
 }
 
-// set white balance
-void OV2640::setWhitebal(int whitebal) {
+// set white balance state
+void OV2640::setAutoWhiteBalanceState(int autoWhiteBalanceState) {
     sensor_t * s = esp_camera_sensor_get();
-    s->set_whitebal(s, whitebal); // 0 = disable , 1 = enable
+    s->set_whitebal(s, autoWhiteBalanceState); // 0 = disable , 1 = enable
 }
-//int8_t OV2640::getWhitebal() {
-//    sensor_t * s = esp_camera_sensor_get();
-//    return s->status.whitebal;
-//}
+
+// set auto white balance gain state, when enabled WbMode disabled and vice versa 
+void OV2640::setAutoWbGainState(uint8_t autoWbGainState) {
+    sensor_t * s = esp_camera_sensor_get();
+    s->set_awb_gain(s, autoWbGainState); // 0 = disable , 1 = enable
+}
+uint8_t OV2640::getAwbGainSate() {
+    sensor_t * s = esp_camera_sensor_get();
+    return s->status.awb_gain;
+}
 
 // set white balance mode
 void OV2640::setWbMode(uint8_t newWbMode) {
@@ -197,27 +180,24 @@ uint8_t OV2640::getWbMode() {
     return s->status.wb_mode;
 }
 
-// set white balance gain
-void OV2640::setAwbGain(uint8_t awbGain) {
+// set exposure control; if disabled then AecValue can be set
+void OV2640::setExposureCtrlState(int exposureCtrlState) { // = AEC SENSOR
     sensor_t * s = esp_camera_sensor_get();
-    s->set_awb_gain(s, awbGain); // 0 = disable , 1 = enable
-}
-uint8_t OV2640::getAwbGain() {
-    sensor_t * s = esp_camera_sensor_get();
-    return s->status.awb_gain;
+    s->set_exposure_ctrl(s, exposureCtrlState); // 0 = disable , 1 = enable
 }
 
-// set exposure control
-void OV2640::setExposureCtrl(int exposureCtrl) {
+// set Exposure Value
+void OV2640::setAecValue(uint16_t newAecValue) { // = Exposure Value
     sensor_t * s = esp_camera_sensor_get();
-    s->set_exposure_ctrl(s, exposureCtrl); // 0 = disable , 1 = enable
+    s->set_aec_value(s, newAecValue); // 0 - 1200
 }
-//int8_t OV2640::getExposureCtrl() {
-//    sensor_t * s = esp_camera_sensor_get();
-//    return s->status.exposureCtrl;
-//}
+uint16_t OV2640::getAecValue() {
+    sensor_t * s = esp_camera_sensor_get();
+    return s->status.aec_value;
+}
 
-void OV2640::setAec2(uint8_t aec2) {
+// set Aec DSP aka Aec2
+void OV2640::setAec2(uint8_t aec2) { //= AEC DSP
     sensor_t * s = esp_camera_sensor_get();
     s->set_aec2(s, aec2); // 0 = disable , 1 = enable
 }
@@ -226,6 +206,7 @@ uint8_t OV2640::getAec2() {
     return s->status.aec2;
 }
 
+// set AeLevel
 void OV2640::setAeLevel(int8_t newAeLevel) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_ae_level(s, newAeLevel); // -2 to 2
@@ -235,25 +216,14 @@ int8_t OV2640::getAeLevel() {
     return s->status.ae_level;
 }
 
-void OV2640::setAecValue(uint16_t newAecValue) {
+// set AgcCtrlState; if enabled Gain Ceiling enabled; if disabled agcGain enabled
+void OV2640::setAgcCtrlState(int agcCtrlState) { // AGC
     sensor_t * s = esp_camera_sensor_get();
-    s->set_aec_value(s, newAecValue); // 0 - 1200
-}
-uint16_t OV2640::getAecValue() {
-    sensor_t * s = esp_camera_sensor_get();
-    return s->status.aec_value;
+    s->set_gain_ctrl(s, agcCtrlState); // 0 = disable , 1 = enable
 }
 
-void OV2640::setGainCtrl(int gainCtrl) {
-    sensor_t * s = esp_camera_sensor_get();
-    s->set_gain_ctrl(s, gainCtrl); // 0 = disable , 1 = enable
-}
-//int8_t OV2640::getGainCtrl() {
-//    sensor_t * s = esp_camera_sensor_get();
-//    return s->status.gainctrl;
-//}
-
-void OV2640::setAgcGain(uint8_t newAgcGain) {
+// 
+void OV2640::setAgcGain(uint8_t newAgcGain) { // 1x - 31x aka 0 - 30
     sensor_t * s = esp_camera_sensor_get();
     s->set_agc_gain(s, newAgcGain); // 0 - 30
 }
@@ -262,7 +232,8 @@ uint8_t OV2640::getAgcGain() {
     return s->status.agc_gain;
 }
 
-void OV2640::setGainceiling(uint8_t newGainceiling) {
+// set GainCeiling
+void OV2640::setGainceiling(uint8_t newGainceiling) { // Gain Ceiling  2x - 128x aka 0 - 6
     sensor_t * s = esp_camera_sensor_get();
     s->set_gainceiling(s, (gainceiling_t)newGainceiling);  // 0 to 6
 }
@@ -271,7 +242,7 @@ uint8_t OV2640::getGainceiling() {
     return s->status.gainceiling;
 }
 
-void OV2640::setBpc(uint8_t bpc) {
+void OV2640::setBpc(uint8_t bpc) { // = BPC
     sensor_t * s = esp_camera_sensor_get();
     s->set_bpc(s, bpc); // 0 = disable , 1 = enable
 }
@@ -280,7 +251,7 @@ uint8_t OV2640::getBpc() {
     return s->status.bpc;
 }
 
-void OV2640::setWpc(uint8_t wpc) {
+void OV2640::setWpc(uint8_t wpc) { // = WPC
     sensor_t * s = esp_camera_sensor_get();
     s->set_wpc(s, wpc); // 0 = disable , 1 = enable
 }
@@ -289,7 +260,7 @@ uint8_t OV2640::getWpc() {
     return s->status.wpc;
 }
 
-void OV2640::setRawGma(uint8_t rawGma) {
+void OV2640::setRawGma(uint8_t rawGma) { // = Raw GMA
     sensor_t * s = esp_camera_sensor_get();
     s->set_raw_gma(s, rawGma); // 0 = disable , 1 = enable
 }
@@ -299,7 +270,7 @@ uint8_t OV2640::getRawGma() {
 }
 
 // set lens correction
-void OV2640::setLenc(uint8_t lenc) {
+void OV2640::setLenc(uint8_t lenc) { // = Lens Correction
     sensor_t * s = esp_camera_sensor_get();
     s->set_lenc(s, lenc); // 0 = disable , 1 = enable
 }
@@ -309,9 +280,9 @@ uint8_t OV2640::getLenc() {
 }
 
 // horizontal mirror
-void OV2640::setHmirror(uint8_t hMirror) {
+void OV2640::setHmirrorState(uint8_t hMirrorState) { // = H-Mirror
     sensor_t * s = esp_camera_sensor_get();
-    s->set_hmirror(s, hMirror); // 0 = disable , 1 = enable
+    s->set_hmirror(s, hMirrorState); // 0 = disable , 1 = enable
 }
 uint8_t OV2640::getHmirror() {
     sensor_t * s = esp_camera_sensor_get();
@@ -319,22 +290,13 @@ uint8_t OV2640::getHmirror() {
 }
 
 // vertical flip
-void OV2640::setVflip(uint8_t vFlip) {
+void OV2640::setVflipState(uint8_t vFlipState) { // = V-Flip
     sensor_t * s = esp_camera_sensor_get();
-    s->set_vflip(s, vFlip); // 0 = disable , 1 = enable
+    s->set_vflip(s, vFlipState); // 0 = disable , 1 = enable
 }
 uint8_t OV2640::getVflip() {
     sensor_t * s = esp_camera_sensor_get();
     return s->status.vflip;
-}
-
-void OV2640::setDcw(uint8_t dcw) {
-    sensor_t * s = esp_camera_sensor_get();
-    s->set_dcw(s, dcw); // 0 = disable , 1 = enable
-}
-uint8_t OV2640::getDcw() {
-    sensor_t * s = esp_camera_sensor_get();
-    return s->status.dcw;
 }
 
 // set a colorbar

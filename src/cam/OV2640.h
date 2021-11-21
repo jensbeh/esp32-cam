@@ -12,24 +12,26 @@ public:
     uint8_t *getFrameBuffer();
     int getWidth();
     int getHeight();
-    framesize_t getFrameSize();
     pixformat_t getPixelFormat();
-    int getJpegQuality();
+
+    void setPixelFormat(pixformat_t format);
+
+    /////////////////////////
+    // Advanced Cam Settings
+    /////////////////////////
+    framesize_t getFrameSize();
     uint8_t getQuality();
     int8_t getBrightness();
     int8_t getContrast();
     int8_t getSaturation();
-    int8_t getSharpness();
-    uint8_t getDenoise();
     uint8_t getSpecialEffect();
-    int8_t getWhitebal(); // xxx
+
+    uint8_t getAwbGainSate();
     uint8_t getWbMode();
-    uint8_t getAwbGain();
-    int8_t getExposureCtrl(); // xxx
+
     uint8_t getAec2();
     int8_t getAeLevel();
     uint16_t getAecValue();
-    int8_t getGainCtrl(); //xxx
     uint8_t getAgcGain();
     uint8_t getGainceiling();
     uint8_t getBpc();
@@ -38,36 +40,32 @@ public:
     uint8_t getLenc();
     uint8_t getHmirror();
     uint8_t getVflip();
-    uint8_t getDcw();
     uint8_t getColorbar();
 
     void setFrameSize(framesize_t size);
-    void setJpegQuality(int jpeg_quality);
     void setQuality(uint8_t newQuality);
-    void setPixelFormat(pixformat_t format);
     void setBrightness(int8_t newBrightness);
     void setContrast(int8_t newContrast);
     void setSaturation(int8_t newSaturation);
-    void setSharpness(int8_t newSharpness);
-    void setDenoise(uint8_t newDenoise);
     void setSpecialEffect(uint8_t newSpecialEffect);
-    void setWhitebal(int whitebal); // xxx
+
+    void setAutoWhiteBalanceState(int autoWhiteBalanceState);
+    void setAutoWbGainState(uint8_t autoWbGainState);
     void setWbMode(uint8_t newWbMode);
-    void setAwbGain(uint8_t awbGain);
-    void setExposureCtrl(int exposureCtrl); // xxx
+    
+    void setExposureCtrlState(int exposureCtrlState);
     void setAec2(uint8_t aec2);
     void setAeLevel(int8_t newAeLevel);
     void setAecValue(uint16_t newAecValue);
-    void setGainCtrl(int gainCtrl); // xxx
+    void setAgcCtrlState(int agcCtrlState);
     void setAgcGain(uint8_t newAgcGain);
     void setGainceiling(uint8_t newGainceiling);
     void setBpc(uint8_t bpc);
     void setWpc(uint8_t wpc);
     void setRawGma(uint8_t rawGma);
     void setLenc(uint8_t lenc);
-    void setHmirror(uint8_t hMirror);
-    void setVflip(uint8_t vFlip);
-    void setDcw(uint8_t dcw);
+    void setHmirrorState(uint8_t hMirrorState);
+    void setVflipState(uint8_t vFlipState);
     void setColorbar(uint8_t colorbar);
 
 private:

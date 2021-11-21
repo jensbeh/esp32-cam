@@ -7,28 +7,26 @@ static String TEST_PATH = "/test";
 
 // Controls
 static String CAM_CONTROLS_PATH = "camControls/";
-static String QUALITY_PATH = "quality=";
-static String BRIGHTNESS_PATH = "brightness=";
-static String CONTRAST_PATH = "contrast="; // currently here
-static String SATURATION_PATH = "saturation=";
-static String SHARPNESS_PATH = "sharpness=";
-static String DENOISE_PATH = "denoise=";
-static String SPECIAL_EFFECT_PATH = "specialEffect=";
-static String WHITEBAL_PATH = "whitebal=";
-static String AWB_GAIN_PATH = "awbGain=";
-static String WB_MODE_PATH = "wbMode=";
-static String EXPOSURE_CTRL_PATH = "exposureCtrl=";
-static String AEC2_PATH = "aec2=";
-static String AE_LEVEL_PATH = "aeLevel=";
-static String AEC_VALUE_PATH = "aecValue=";
-static String GAIN_CTRL_PATH = "gainCtrl=";
-static String AGC_GAIN_PATH = "agcGain=";
-static String GAINCEILING_PATH = "gainceiling=";
-static String BPC_PATH = "bpc=";
-static String WPC_PATH = "wpc=";
-static String RAW_GMA_PATH = "rawGma=";
-static String LENC_PATH = "lenc=";
-static String HMIRROR_PATH = "hmirror=";
-static String VFLIP_PATH = "vflip=";
-static String DCW_PATH = "dcw=";
-static String COLORBAR_PATH = "colorbar=";
+static String FRAMESIZE_PATH = "framesize="; // 0,3,4,5,6,7,8,9,10
+static String QUALITY_PATH = "quality="; //10 - 63
+static String BRIGHTNESS_PATH = "brightness="; // -2  to 2
+static String CONTRAST_PATH = "contrast="; // -2 to 2
+static String SATURATION_PATH = "saturation="; // -2 to 2
+static String SPECIAL_EFFECT_PATH = "specialEffect="; // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+static String WHITEBALANCE_STATE_PATH = "autoWhiteBalance="; // 0 = disable , 1 = enable
+static String AUTOWB_GAIN_PATH = "autoWbGain="; // 0 = disable , 1 = enable
+static String WB_MODE_PATH = "wbMode="; // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+static String EXPOSURE_CTRL_STATE_PATH = "exposureCtrl="; // 0 = disable , 1 = enable
+static String AEC_VALUE_PATH = "aecValue="; // 0 - 1200
+static String AEC2_PATH = "aec2="; // 0 = disable , 1 = enable
+static String AE_LEVEL_PATH = "aeLevel="; // -2 to 2
+static String AGC_CTRL_STATE_PATH = "agcCtrl="; // 0 = disable , 1 = enable
+static String AGC_GAIN_PATH = "agcGain="; // 0 - 30
+static String GAINCEILING_PATH = "gainceiling="; // 0 to 6
+static String BPC_PATH = "bpc="; // 0 = disable , 1 = enable
+static String WPC_PATH = "wpc="; // 0 = disable , 1 = enable
+static String RAW_GMA_PATH = "rawGma="; // 0 = disable , 1 = enable
+static String LENC_PATH = "lenc="; // 0 = disable , 1 = enable
+static String HMIRROR_PATH = "hmirror="; // 0 = disable , 1 = enable
+static String VFLIP_PATH = "vflip="; // 0 = disable , 1 = enable
+static String COLORBAR_PATH = "colorbar="; // 0 = disable , 1 = enable
