@@ -3,6 +3,8 @@
 
 camera_config_t cam_config;
 
+int thisAutoWhiteBalanceState, thisExposureCtrlState, thisAgcCtrlState;
+
 void setupCam() {
     cam_config.ledc_channel = LEDC_CHANNEL_0;
     cam_config.ledc_timer = LEDC_TIMER_0;
@@ -30,6 +32,11 @@ void setupCam() {
     cam_config.frame_size = FRAMESIZE_VGA;
     cam_config.jpeg_quality = 10;
     cam_config.fb_count = 2;
+
+    // additional settings
+    thisAutoWhiteBalanceState = 1;
+    thisExposureCtrlState = 1;
+    thisAgcCtrlState = 1;
 }
 
 void OV2640::makeFrameBuffer() {
@@ -164,6 +171,11 @@ uint8_t OV2640::getSpecialEffect() {
 void OV2640::setAutoWhiteBalanceState(int autoWhiteBalanceState) {
     sensor_t * s = esp_camera_sensor_get();
     s->set_whitebal(s, autoWhiteBalanceState); // 0 = disable , 1 = enable
+    thisAutoWhiteBalanceState = autoWhiteBalanceState;
+}
+
+int OV2640::getAutoWhiteBalanceState() {
+    return thisAutoWhiteBalanceState;
 }
 
 // set auto white balance gain state, when enabled WbMode disabled and vice versa 
@@ -189,7 +201,11 @@ uint8_t OV2640::getWbMode() {
 // set exposure control; if disabled then AecValue can be set
 void OV2640::setExposureCtrlState(int exposureCtrlState) { // = AEC SENSOR
     sensor_t * s = esp_camera_sensor_get();
-    s->set_exposure_ctrl(s, exposureCtrlState); // 0 = disable , 1 = enable
+    s->set_exposure_ctrl(s, exposureCtrlState);
+    thisExposureCtrlState = exposureCtrlState; // 0 = disable , 1 = enable
+}
+int OV2640::getExposureCtrlState() {
+    return thisExposureCtrlState;
 }
 
 // set Exposure Value
@@ -226,6 +242,10 @@ int8_t OV2640::getAeLevel() {
 void OV2640::setAgcCtrlState(int agcCtrlState) { // AGC
     sensor_t * s = esp_camera_sensor_get();
     s->set_gain_ctrl(s, agcCtrlState); // 0 = disable , 1 = enable
+    thisAgcCtrlState = agcCtrlState;
+}
+int OV2640::getAgcCtrlState() {
+    return thisAgcCtrlState;
 }
 
 // 

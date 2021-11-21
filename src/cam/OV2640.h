@@ -42,6 +42,10 @@ public:
     uint8_t getVflip();
     uint8_t getColorbar();
 
+    int getAutoWhiteBalanceState();
+    int getExposureCtrlState();
+    int getAgcCtrlState();
+
     void setFrameSize(framesize_t size);
     void setQuality(uint8_t newQuality);
     void setBrightness(int8_t newBrightness);

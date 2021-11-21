@@ -324,6 +324,81 @@ void removeWSClient(uint8_t num) {
   clientIdsVector.erase(clientIdsVector.begin() + index);
 }
 
+void sendCameraInitsToWebSocketClient(uint8_t num) {
+        // framesize
+      String txCmd = CAM_CONTROLS_PATH + FRAMESIZE_PATH + String(cam.getFrameSize());
+      webSocketServer.sendTXT(num, txCmd);
+      // quality
+      txCmd = CAM_CONTROLS_PATH + QUALITY_PATH + String(cam.getQuality());
+      webSocketServer.sendTXT(num, txCmd);
+      // brightness
+      txCmd = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
+      webSocketServer.sendTXT(num, txCmd);
+      // contrast
+      txCmd = CAM_CONTROLS_PATH + CONTRAST_PATH + String(cam.getContrast());
+      webSocketServer.sendTXT(num, txCmd);
+      // saturation
+      txCmd = CAM_CONTROLS_PATH + SATURATION_PATH + String(cam.getSaturation());
+      webSocketServer.sendTXT(num, txCmd);
+      // special effect
+      txCmd = CAM_CONTROLS_PATH + SPECIAL_EFFECT_PATH + String(cam.getSpecialEffect());
+      webSocketServer.sendTXT(num, txCmd);
+      // whitebalance state
+      txCmd = CAM_CONTROLS_PATH + WHITEBALANCE_STATE_PATH + String(cam.getAutoWhiteBalanceState());
+      webSocketServer.sendTXT(num, txCmd);
+      // autoWbGain
+      txCmd = CAM_CONTROLS_PATH + AUTOWB_GAIN_PATH + String(cam.getAwbGainSate());
+      webSocketServer.sendTXT(num, txCmd);
+      // wbMode
+      txCmd = CAM_CONTROLS_PATH + WB_MODE_PATH + String(cam.getWbMode());
+      webSocketServer.sendTXT(num, txCmd);
+      // exposureCtrlState
+      txCmd = CAM_CONTROLS_PATH + EXPOSURE_CTRL_STATE_PATH + String(cam.getExposureCtrlState());
+      webSocketServer.sendTXT(num, txCmd);
+      // aecValue
+      txCmd = CAM_CONTROLS_PATH + AEC_VALUE_PATH + String(cam.getAecValue());
+      webSocketServer.sendTXT(num, txCmd);
+      // aec2
+      txCmd = CAM_CONTROLS_PATH + AEC2_PATH + String(cam.getAec2());
+      webSocketServer.sendTXT(num, txCmd);
+      // aeLevel
+      txCmd = CAM_CONTROLS_PATH + AE_LEVEL_PATH + String(cam.getAeLevel());
+      webSocketServer.sendTXT(num, txCmd);
+      // agcCtrlState
+      txCmd = CAM_CONTROLS_PATH + AGC_CTRL_STATE_PATH + String(cam.getAgcCtrlState());
+      webSocketServer.sendTXT(num, txCmd);
+      // agcGain
+      txCmd = CAM_CONTROLS_PATH + AGC_GAIN_PATH + String(cam.getAgcGain());
+      webSocketServer.sendTXT(num, txCmd);
+      // gainCeiling
+      txCmd = CAM_CONTROLS_PATH + GAINCEILING_PATH + String(cam.getGainceiling());
+      webSocketServer.sendTXT(num, txCmd);
+      // bpc
+      txCmd = CAM_CONTROLS_PATH + BPC_PATH + String(cam.getBpc());
+      webSocketServer.sendTXT(num, txCmd);
+      // wpc
+      txCmd = CAM_CONTROLS_PATH + WPC_PATH + String(cam.getWpc());
+      webSocketServer.sendTXT(num, txCmd);
+      // wpc
+      txCmd = CAM_CONTROLS_PATH + WPC_PATH + String(cam.getWpc());
+      webSocketServer.sendTXT(num, txCmd);
+      // rawGma
+      txCmd = CAM_CONTROLS_PATH + RAW_GMA_PATH + String(cam.getRawGma());
+      webSocketServer.sendTXT(num, txCmd);
+      // lenc
+      txCmd = CAM_CONTROLS_PATH + LENC_PATH + String(cam.getLenc());
+      webSocketServer.sendTXT(num, txCmd);
+      // hMirror
+      txCmd = CAM_CONTROLS_PATH + HMIRROR_PATH + String(cam.getHmirror());
+      webSocketServer.sendTXT(num, txCmd);
+      // vFlip
+      txCmd = CAM_CONTROLS_PATH + VFLIP_PATH + String(cam.getVflip());
+      webSocketServer.sendTXT(num, txCmd);
+      // colorbar
+      txCmd = CAM_CONTROLS_PATH + COLORBAR_PATH + String(cam.getColorbar());
+      webSocketServer.sendTXT(num, txCmd);
+}
+
 // is called when receiving any webSocket message
 void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   // num = id of cliend, up to 5!
@@ -344,12 +419,7 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
       Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
 
       // send camera settings here
-      // brightness
-      String txBrightness = CAM_CONTROLS_PATH + BRIGHTNESS_PATH + String(cam.getBrightness());
-      webSocketServer.sendTXT(num, txBrightness);
-      // contrast
-      String txContrast = CAM_CONTROLS_PATH + CONTRAST_PATH + String(cam.getContrast());
-      webSocketServer.sendTXT(num, txContrast);
+      sendCameraInitsToWebSocketClient(num);
       }
       break;
 
