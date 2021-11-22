@@ -8,6 +8,8 @@
 
 #include <WebSocketsServer.h>
 
+#include <SPIFFS.h>
+
 // create wifi_settings.h and insert:
 /*
 #define myWifiSsid "yourSsid"
@@ -62,13 +64,6 @@ void handle_jpg() {
   cam.makeFrameBuffer();
   client.write(JHEADER, jhdLen);
   client.write((char *)cam.getFrameBuffer(), cam.getSize());
-}
-
-void handle_test() {
-  WiFiClient client = webServer.client();
-
-  if (!client.connected()) return;
-  Serial.println(webServer.arg("Test123")); //http://192.168.188.45/test?Test123=blablabla
 }
 
 // handle invalid webServer comands
@@ -488,14 +483,81 @@ void handle_streams() {
   }
 }
 
+void handle_wifiSetupHtml() {
+
+      File webFile = SPIFFS.open("/index.html", "r");
+      webServer.streamFile(webFile, "text/html");
+}
+void handle_wifiSetupCss() {
+      File webFile = SPIFFS.open("/style.css", "r");
+      webServer.streamFile(webFile, "text/css");
+}
+void handle_incomingWifiCredentials() {
+  if (webServer.hasArg("networkName") && webServer.hasArg("networkPassword")) {
+    String name = webServer.arg("networkName").c_str();
+    String pw = webServer.arg("networkPassword").c_str();
+    const char *networkName = name.c_str();
+    const char *networkPassword = pw.c_str();
+
+    Serial.println(String(networkName));
+    Serial.println(networkPassword);
+
+    // write into SPIFFS
+
+    File webFile = SPIFFS.open("/success.html", "r");
+    webServer.streamFile(webFile, "text/html");
+
+    // restart when new credentials are set
+    //ESP.restart();
+  } else {
+    webServer.send(200, "text / plain", "Error");
+  }
+}
+
 void setup() {
   Serial.begin(115200);
-  //while (!Serial);            //wait for serial connection.
 
+  // read SPIFFS
+  if (!SPIFFS.begin(true)) {
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
+
+  File wifiCredentials = SPIFFS.open("/wifiCredentials.txt"); 
+  if(!wifiCredentials){
+      Serial.println("Failed to open file for reading");
+      return;
+  }
+  char wifiCredentialsFileContent [512] = {'\0'};
+  char wifiCredentialsSsid [512] = {'\0'};
+  char wifiCredentialsPw [512] = {'\0'};
+  uint16_t i = 0;
+  while (wifiCredentials.available()) {
+     wifiCredentialsFileContent [i] = wifiCredentials.read();
+     i++;
+  }
+  wifiCredentialsFileContent [i] ='\0';
+  for (int j = 0; j < i + 1; j++) {
+    if (j < 8) {
+      wifiCredentialsSsid[j] = wifiCredentialsFileContent[j];
+    } else if (j > 8) {
+      wifiCredentialsPw[j-9] = wifiCredentialsFileContent[j];
+    }
+  }
+  wifiCredentials.close();
+
+  ssid = wifiCredentialsSsid;
+  password = wifiCredentialsPw;
+
+  Serial.println(SPIFFS.exists("/index.html"));
+  Serial.println(SPIFFS.exists("/style.css"));
+  Serial.println(SPIFFS.exists("/success.html"));
+
+  // setup cam
   cam.init();
 
-  //WiFi.mode(WIFI_STA);
-  WiFi.begin(myWifiSsid, myWifiPassword);
+  // setup wifi
+  WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -514,7 +576,9 @@ void setup() {
   // setup webServer
   webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
   webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
-  webServer.on(TEST_PATH, HTTP_GET, handle_test);
+  webServer.on("/", HTTP_GET, handle_wifiSetupHtml);
+  webServer.on("/style.css", HTTP_GET, handle_wifiSetupCss);
+  webServer.on("/", HTTP_POST, handle_incomingWifiCredentials);
   webServer.onNotFound(handleNotFound);
   webServer.begin();
 
