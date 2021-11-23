@@ -6,18 +6,32 @@ header {
 }
 body {
     margin: 0;
+    margin-bottom: 40px;
     padding: 0;
+    height: 100%;
     font-family: Arial, Helvetica, sans-serif;
     background-color: #383838;
+    /* padding-bottom: 100px; */
 }
 
+h1 {
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+hr {
+    width: 90%;
+    border: 1px solid rgba(43, 43, 43, 0.678);
+}
+
+/* WiFi List Main Box */
 .box {
     width: 50%;
     padding: 35px;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 20%;
+    left: 22%;
+    /* transform: translate(-50%, -50%); */
     background-color: #191919;
     color: white;
     text-align: center;
@@ -26,73 +40,46 @@ body {
     box-shadow: 0px 1px 32px 0px rgba(51, 51, 51, 0.59);
 }
 
-.wifiName{
-    margin-top: 0px;
-    width: 60%;
+.wifiListTable {
+    width: 100%;
+}
+.tdName {
     display: flex;
-    justify-content: left;
-}
-
-h1 {
-    text-transform: uppercase;
-    font-weight: 500;
-    padding-bottom: 20px;
-}
-
-input {
-    border: 0;
-    display: block;
-    background: none;
-    margin: 20px auto;
-    text-align: center;
-    border: 2px solid #d43434;
-    padding: 14px 10px;
-    width: 45%;
-    outline: none;
-    border-radius: 24px;
+    width: 70%;
+    min-width: 70%;
+    max-width: 70%;
+    text-align: left;
     color: white;
-    font-size: smaller;
-    transition: 0.3s;
+    padding-left: 80px;
+    padding-right: 40px;
+    align-items: center;
+}
+.tdButton {
+    width: 30%;
+    padding-right: 70px;
 }
 
-input:focus {
-    width: 90%;
-    border-color: #c97b16;
-}
-
-input[type='submit'] {
-    border: 0;
-    display: block;
-    background: none;
-    text-align: center;
-    border: 2px solid #c97b16;
+.selectWifiButton {
+    background: #4a4a4a;
+    border: none;
     padding: 14px 10px;
     width: 140px;
-    outline: none;
     border-radius: 24px;
     color: white;
     transition: 0.3s;
     cursor: pointer;
 }
-
-input[type='submit']:hover {
+.selectWifiButton:hover {
     background-color: #c97b16;
+    border: #c97b16
 }
 
-.test {
-    width: 100%;
-}
-.tdName {
-    width: 70%;
-    min-width: 70%;
-    max-width: 70%;
-    text-align: left;
-    padding-left: 80px;
-    padding-right: 40px;
-}
-.tdButton {
-    width: 30%;
-    padding-right: 70px;
+/* Popup Settings */
+.wifiName{
+    margin-top: 0px;
+    width: 60%;
+    display: flex;
+    justify-content: left;
 }
 
 .popup_overlay {
@@ -118,4 +105,92 @@ input[type='submit']:hover {
     box-shadow: 0px 1px 32px 0px rgba(51, 51, 51, 0.59);
 
     text-align: center;
+}
+
+.connectToWifiButton {
+    background: #4a4a4a;
+    border: none;
+    padding: 14px 10px;
+    width: 140px;
+    border-radius: 24px;
+    color: white;
+    transition: 0.3s;
+    cursor: pointer;
+    margin-top: 30px;
+}
+.connectToWifiButton:hover {
+    background-color: #16c916;
+    border: #16c916
+}
+
+.inputPassword {
+    margin: auto;
+    margin-bottom: 10px;
+    border: 0;
+    display: block;
+    background: none;
+    text-align: center;
+    border: 2px solid #787878;
+    padding: 14px 10px;
+    width: 45%;
+    outline: none;
+    border-radius: 24px;
+    color: white;
+    font-size: smaller;
+    transition: 0.3s;
+}
+.inputPassword:focus {
+    width: 60%;
+    border-color: #c97b16;
+}
+
+.closePopupButton {
+    background: #222222;
+    border: none;
+    border-radius: 24px;
+    width: 30px;
+    height: 30px;
+    color: white;
+    transition: 0.3s;
+    cursor: pointer;
+}
+.closePopupButton:hover {
+    background-color: #c91616;
+    border: #c91616
+}
+
+.loader_overlay {
+    display: none;
+    position: fixed; /* Stay in place */
+    z-index: 100; /* Sit on top */
+    left: 0;
+    right:0;
+    top: 0;
+    bottom:0;
+    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+}
+
+.loader-content {
+    border: 5px solid #f3f3f3; /* Light grey */
+    border-top: 5px solid #0084ff; /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-left: -20px;
+    margin-top: -20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: spin 2s linear infinite;
+}
+  
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.errorLabel {
+    display: none;
+    color: red;
 }

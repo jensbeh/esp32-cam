@@ -502,16 +502,19 @@ void handle_incomingWifiCredentials() {
 
     Serial.println(String(networkName));
     Serial.println(networkPassword);
-
+    if (String(networkPassword) == "401") {
+      webServer.send(401, "text/html");
+    } else {
     // write into SPIFFS
 
-    File webFile = SPIFFS.open("/success.html", "r");
-    webServer.streamFile(webFile, "text/html");
+      File webFile = SPIFFS.open("/success.html", "r");
+      webServer.streamFile(webFile, "text/html");
 
     // restart when new credentials are set
     //ESP.restart();
+    }
   } else {
-    webServer.send(200, "text / plain", "Error");
+    webServer.send(401, "text/html");
   }
 }
 
@@ -551,6 +554,7 @@ void setup() {
   password = wifiCredentialsPw;
 
   Serial.println(SPIFFS.exists("/index.html"));
+  Serial.println(SPIFFS.exists("/newIndex.html"));
   Serial.println(SPIFFS.exists("/style.css"));
   Serial.println(SPIFFS.exists("/success.html"));
 
@@ -612,8 +616,12 @@ void setup() {
       String htmlItem = indexHtml_partRawItem;
       htmlItem.replace("WIFI_ID", BSSIDstr);
       htmlItem.replace("WIFI_NAME", WiFi.SSID(i));
-
       indexHtmlStr += htmlItem;
+
+      if (i + 1 != n) {
+        String htmlHrLine = indexHtml_hr_line;
+        indexHtmlStr += htmlHrLine;
+      }
     }
     indexHtmlStr += indexHtml_part2;
     File webFile = SPIFFS.open("/newIndex.html", "w");
