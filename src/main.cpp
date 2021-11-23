@@ -1,3 +1,4 @@
+#include "main.h"
 #include "cam/OV2640.h"
 #include "wifi_settings.h"
 #include "constants.h"
@@ -485,7 +486,7 @@ void handle_streams() {
 
 void handle_wifiSetupHtml() {
 
-      File webFile = SPIFFS.open("/index.html", "r");
+      File webFile = SPIFFS.open("/newIndex.html", "r");
       webServer.streamFile(webFile, "text/html");
 }
 void handle_wifiSetupCss() {
@@ -571,7 +572,6 @@ void setup() {
   Serial.print("Capture Link: http://");
   Serial.print(ip);
   Serial.println(CAPTURE_PATH);
-  Serial.println("Test Send Link: http://192.168.188.45/test?Test123=blablabla");
 
   // setup webServer
   webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
@@ -585,6 +585,40 @@ void setup() {
   // setup webSocketServer server
   webSocketServer.begin();
   webSocketServer.onEvent(onWebSocketEvent);
+
+
+
+  // create indexHtml
+  //WiFi.mode(WIFI_STA);
+  //WiFi.disconnect();
+  Serial.println(WiFi.scanNetworks());
+  int n = WiFi.scanNetworks();
+
+  String indexHtmlStr = indexHtml_part1;
+  for (int i = 0; i < n; ++i) {
+      // Print SSID and RSSI for each network found
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.print(WiFi.SSID(i)); // SSID
+      Serial.print(" (");
+      Serial.print(WiFi.BSSIDstr(i)); // MAC
+      Serial.print(")");
+      Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_WPA2_PSK)?" ":"*");
+      delay(10);
+
+      String BSSIDstr = WiFi.BSSIDstr(i);
+      BSSIDstr.replace(":", "");
+
+      String htmlItem = indexHtml_partRawItem;
+      htmlItem.replace("WIFI_ID", BSSIDstr);
+      htmlItem.replace("WIFI_NAME", WiFi.SSID(i));
+
+      indexHtmlStr += htmlItem;
+    }
+    indexHtmlStr += indexHtml_part2;
+    File webFile = SPIFFS.open("/newIndex.html", "w");
+    webFile.print(indexHtmlStr);
+    webFile.close();
 }
 
 void loop() {
