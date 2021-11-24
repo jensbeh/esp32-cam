@@ -530,6 +530,11 @@ void handle_wifiSetupCss() {
       webServer.streamFile(webFile, "text/css");
       webFile.close();
 }
+void handle_wifiSetupJQuery() {
+      File webFile = SPIFFS.open("/jquery.js", "r");
+      webServer.streamFile(webFile, "text/js");
+      webFile.close();
+}
 void handle_incomingWifiCredentials() {
   if (webServer.hasArg("networkName") && webServer.hasArg("networkPassword")) {
     String name = webServer.arg("networkName").c_str();
@@ -633,6 +638,7 @@ void setup() {
 
     webServer.on("/", handle_wifiSetupHtml);
     webServer.on("/style.css", HTTP_GET, handle_wifiSetupCss);
+    webServer.on("/jquery.js", HTTP_GET, handle_wifiSetupJQuery);
     webServer.on("/connectWiFi", handle_incomingWifiCredentials);
     webServer.onNotFound(handleNotFound);
     webServer.begin();
