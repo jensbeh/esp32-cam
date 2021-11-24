@@ -21,8 +21,8 @@
           <td style="border: 0" class="tdName">
             <h3 id="wifiId1">WiFi-Name1</h3>
           </td>
-          <td style="border: 0" class="tdButton"> <button id="1" type="button"
-              onClick="showPopup(this.id, wifiId1.textContent)" class="selectWifiButton">Connect to it!</button> </td>
+          <td style="border: 0" class="tdButton"> <button id="button" type="button"
+              onClick="showPopup(wifiId1.textContent)" class="selectWifiButton">Connect to it!</button> </td>
         </tr>
 
         <tr>
@@ -35,8 +35,8 @@
           <td style="border: 0" class="tdName">
             <h3 id="wifiId2">WiFi-Name2</h3>
           </td>
-          <td style="border: 0" class="tdButton"> <button id="2" type="button"
-              onClick="showPopup(this.id, wifiId2.textContent)" class="selectWifiButton">Connect to it!</button> </td>
+          <td style="border: 0" class="tdButton"> <button id="button" type="button"
+              onClick="showPopup(wifiId2.textContent)" class="selectWifiButton">Connect to it!</button> </td>
         </tr>
 
       </tbody>
@@ -55,7 +55,7 @@
       <div class="part">
         <input id="inputPassword" class="inputPassword" required="required" placeholder="Password"
           name="networkPassword" value="" type="password">
-          <label id="errorLabel" class="errorLabel">ERROR HERE</label>
+        <label id="errorLabel" class="errorLabel">Incorrect WiFi password.</label>
       </div>
 
       <button type="button" class="connectToWifiButton" onClick="connectToWiFi()">Connect!</button>
@@ -78,10 +78,11 @@
 
 
 
-  <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
   <script type="text/javascript">
-    function showPopup(button_id, stringwifi) {
+    function showPopup(stringwifi) {
       $(".popup_overlay").hide().fadeIn(300);
       document.getElementById("popupWifiName").textContent = stringwifi;
       document.getElementById("wifiName").value = stringwifi;
@@ -112,29 +113,28 @@
     }
 
     function sendWiFiCredentials() {
-      var xhttp = new XMLHttpRequest();
+      if (document.getElementById("inputPassword").value != "") {
+        var xhttp = new XMLHttpRequest();
 
-      xhttp.open("POST", "connectWiFi", true);
+        xhttp.open("POST", "connectWiFi", true);
 
-      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
 
-      xhttp.onreadystatechange = function() {//Call a function when the state changes.
-        if(xhttp.readyState == 4 && xhttp.status == 200) {
-          //document.open();
-          //document.write(xhttp.responseText);
-          //document.close();
-          $("body").html(xhttp.responseText);
-        }
-        else if(xhttp.readyState == 4 && xhttp.status == 401) {
-          console.log(xhttp.responseText);
-          hideLoading();
-          showPasswordError();
-        }
+        xhttp.onreadystatechange = function () {
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+            $("body").html(xhttp.responseText);
+          }
+          else if (xhttp.readyState == 4 && xhttp.status == 401) {
+            console.log(xhttp.responseText);
+            hideLoading();
+            showPasswordError();
+          }
+        };
+
+        var nameAndPasswort = "networkName=" + document.getElementById("wifiName").value + "&networkPassword=" + document.getElementById("inputPassword").value;
+        xhttp.send(nameAndPasswort);
       }
-      
-      var nameAndPasswort = 'networkName=' + document.getElementById("wifiName").value + '&networkPassword=' + document.getElementById("inputPassword").value;
-      xhttp.send(nameAndPasswort);
     }
 
   </script>

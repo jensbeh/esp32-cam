@@ -6,12 +6,11 @@ header {
 }
 body {
     margin: 0;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     padding: 0;
     height: 100%;
     font-family: Arial, Helvetica, sans-serif;
     background-color: #383838;
-    /* padding-bottom: 100px; */
 }
 
 h1 {
@@ -27,16 +26,32 @@ hr {
 /* WiFi List Main Box */
 .box {
     width: 50%;
+    min-width:480px;
     padding: 35px;
-    position: absolute;
+    position: relative;
     top: 20%;
-    left: 22%;
-    /* transform: translate(-50%, -50%); */
+    margin-top: 30px;
+    left: 50%;
+    transform: translate(-50%);
     background-color: #191919;
     color: white;
     text-align: center;
     border-radius: 24px;
     align-items: center;
+    box-shadow: 0px 1px 32px 0px rgba(51, 51, 51, 0.59);
+}
+.successBox {
+    width: 50%;
+    min-width:480px;
+    padding: 35px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #191919;
+    color: white;
+    text-align: center;
+    border-radius: 24px;
     box-shadow: 0px 1px 32px 0px rgba(51, 51, 51, 0.59);
 }
 
@@ -193,4 +208,5 @@ hr {
 .errorLabel {
     display: none;
     color: red;
+    font-size: 12px;
 }

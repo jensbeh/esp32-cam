@@ -485,7 +485,7 @@ void handle_streams() {
 }
 
 void handle_wifiSetupHtml() {
-      File webFile = SPIFFS.open("/index.html", "r");
+      File webFile = SPIFFS.open("/newIndex.html", "r");
       webServer.send(200, "text/html", webFile.readString());
       webFile.close();
 }
@@ -592,7 +592,7 @@ void setup() {
   webServer.on("/", handle_wifiSetupHtml);
   webServer.on("/style.css", HTTP_GET, handle_wifiSetupCss);
   webServer.on("/connectWiFi", handle_incomingWifiCredentials);
-  
+
   webServer.onNotFound(handleNotFound);
   webServer.begin();
 
