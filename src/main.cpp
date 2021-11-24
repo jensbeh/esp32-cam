@@ -484,7 +484,43 @@ void handle_streams() {
   }
 }
 
+void createIndexHtml() {
+  // get all avaiable wifis nearby
+  int n = WiFi.scanNetworks();
+  String indexHtmlStr = indexHtml_part1;
+  for (int i = 0; i < n; ++i) {
+    // Print SSID and RSSI for each network found
+    Serial.print(i + 1);
+    Serial.print(": ");
+    Serial.print(WiFi.SSID(i)); // SSID
+    Serial.print(" (");
+    Serial.print(WiFi.BSSIDstr(i)); // MAC
+    Serial.print(")");
+    Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_WPA2_PSK)?" ":"*");
+    delay(10);
+
+    String BSSIDstr = WiFi.BSSIDstr(i);
+    BSSIDstr.replace(":", "");
+
+    String htmlItem = indexHtml_partRawItem;
+    htmlItem.replace("WIFI_ID", "xxx"+BSSIDstr+"xxx");
+    htmlItem.replace("WIFI_NAME", WiFi.SSID(i));
+    indexHtmlStr += htmlItem;
+
+    if (i + 1 != n) {
+      String htmlHrLine = indexHtml_hr_line;
+      indexHtmlStr += htmlHrLine;
+    }
+  }
+  indexHtmlStr += indexHtml_part2;
+  File webFile = SPIFFS.open("/newIndex.html", "w");
+  webFile.print(indexHtmlStr);
+  webFile.close();
+}
+
 void handle_wifiSetupHtml() {
+      // first create indexHtml with avaiable wifis
+
       File webFile = SPIFFS.open("/newIndex.html", "r");
       webServer.send(200, "text/html", webFile.readString());
       webFile.close();
@@ -536,8 +572,9 @@ void setup() {
     return;
   }
 
-  File wifiCredentials = SPIFFS.open("/wifiCredentials.txt"); 
-  if(!wifiCredentials){
+  // get wifiCredentials if existing
+  File readWifiCredentials = SPIFFS.open("/wifiCredentials.txt", "r"); 
+  if(!readWifiCredentials){
       Serial.println("Failed to open file for reading");
       return;
   }
@@ -545,97 +582,97 @@ void setup() {
   char wifiCredentialsSsid [512] = {'\0'};
   char wifiCredentialsPw [512] = {'\0'};
   uint16_t i = 0;
-  while (wifiCredentials.available()) {
-     wifiCredentialsFileContent [i] = wifiCredentials.read();
+  while (readWifiCredentials.available()) {
+     wifiCredentialsFileContent [i] = readWifiCredentials.read();
      i++;
   }
+  readWifiCredentials.close();
+
   wifiCredentialsFileContent [i] ='\0';
+  bool firstWord = true;
+  bool secondWord = false;
+  int lenFirstWord;
   for (int j = 0; j < i + 1; j++) {
-    if (j < 8) {
+    if (wifiCredentialsSsid[j] == ' ') {
+      firstWord = false;
+      secondWord = true;
+      lenFirstWord = j + 1;
+      continue;
+    }
+    if (firstWord) {
       wifiCredentialsSsid[j] = wifiCredentialsFileContent[j];
-    } else if (j > 8) {
-      wifiCredentialsPw[j-9] = wifiCredentialsFileContent[j];
+    } else if (secondWord) {
+      wifiCredentialsPw[j - lenFirstWord] = wifiCredentialsFileContent[j];
     }
   }
-  wifiCredentials.close();
 
-  ssid = wifiCredentialsSsid;
-  password = wifiCredentialsPw;
-
-  Serial.println(SPIFFS.exists("/index.html"));
-  Serial.println(SPIFFS.exists("/newIndex.html"));
-  Serial.println(SPIFFS.exists("/style.css"));
-  Serial.println(SPIFFS.exists("/success.html"));
-
-  // setup cam
-  cam.init();
-
-  // setup wifi
-  WiFi.begin("HomeWiFi", "Jena7117");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  IPAddress ip = WiFi.localIP();
-  Serial.print("WiFi connected - ip: ");
-  Serial.println(ip);
-  Serial.print("Stream Link: http://");
-  Serial.print(ip);
-  Serial.println(STREAM_PATH);
-  Serial.print("Capture Link: http://");
-  Serial.print(ip);
-  Serial.println(CAPTURE_PATH);
-
-  // setup webServer
-  webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
-  webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
-  webServer.on("/", handle_wifiSetupHtml);
-  webServer.on("/style.css", HTTP_GET, handle_wifiSetupCss);
-  webServer.on("/connectWiFi", handle_incomingWifiCredentials);
-
-  webServer.onNotFound(handleNotFound);
-  webServer.begin();
-
-  // setup webSocketServer server
-  webSocketServer.begin();
-  webSocketServer.onEvent(onWebSocketEvent);
+  // if there are no wifi credentials
+  if (String(wifiCredentialsSsid) == "") {
+    Serial.println("EMPTY");
+      createIndexHtml();
 
 
+    // get new wifi here
+    const char *soft_ap_ssid = "ESP32 Camera";
+    //IPAddress local_IP(192, 168, 1, 184);
+    // Set your Gateway IP address
+    //IPAddress gateway(192, 168, 1, 1);
 
-  // create indexHtml
-  //WiFi.mode(WIFI_STA);
-  //WiFi.disconnect();
-  int n = WiFi.scanNetworks();
+    //IPAddress subnet(255, 255, 0, 0);
 
-  String indexHtmlStr = indexHtml_part1;
-  for (int i = 0; i < n; ++i) {
-      // Print SSID and RSSI for each network found
-      Serial.print(i + 1);
-      Serial.print(": ");
-      Serial.print(WiFi.SSID(i)); // SSID
-      Serial.print(" (");
-      Serial.print(WiFi.BSSIDstr(i)); // MAC
-      Serial.print(")");
-      Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_WPA2_PSK)?" ":"*");
-      delay(10);
+    WiFi.mode(WIFI_AP);
+    //WiFi.config(local_IP, gateway, subnet);
 
-      String BSSIDstr = WiFi.BSSIDstr(i);
-      BSSIDstr.replace(":", "");
+    WiFi.softAP(soft_ap_ssid, NULL);
+    Serial.println(WiFi.softAPIP());
 
-      String htmlItem = indexHtml_partRawItem;
-      htmlItem.replace("WIFI_ID", BSSIDstr);
-      htmlItem.replace("WIFI_NAME", WiFi.SSID(i));
-      indexHtmlStr += htmlItem;
+    Serial.println(SPIFFS.exists("/index.html"));
+    Serial.println(SPIFFS.exists("/newIndex.html"));
+    Serial.println(SPIFFS.exists("/style.css"));
+    Serial.println(SPIFFS.exists("/success.html"));
 
-      if (i + 1 != n) {
-        String htmlHrLine = indexHtml_hr_line;
-        indexHtmlStr += htmlHrLine;
+    webServer.on("/", handle_wifiSetupHtml);
+    webServer.on("/style.css", HTTP_GET, handle_wifiSetupCss);
+    webServer.on("/connectWiFi", handle_incomingWifiCredentials);
+    webServer.onNotFound(handleNotFound);
+    webServer.begin();
+
+
+    //wifiCredentials.println("TEST");
+    //wifiCredentials.flush();
+  } else {
+    Serial.println("NOT EMPTY");
+    
+      // setup cam
+      cam.init();
+
+      // setup wifi
+      WiFi.begin(wifiCredentialsSsid, wifiCredentialsPw);
+      while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
       }
-    }
-    indexHtmlStr += indexHtml_part2;
-    File webFile = SPIFFS.open("/newIndex.html", "w");
-    webFile.print(indexHtmlStr);
-    webFile.close();
+      IPAddress ip = WiFi.localIP();
+      Serial.print("WiFi connected - ip: ");
+      Serial.println(ip);
+      Serial.print("Stream Link: http://");
+      Serial.print(ip);
+      Serial.println(STREAM_PATH);
+      Serial.print("Capture Link: http://");
+      Serial.print(ip);
+      Serial.println(CAPTURE_PATH);
+
+      // setup webServer
+      webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
+      webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
+
+      webServer.onNotFound(handleNotFound);
+      webServer.begin();
+
+      // setup webSocketServer server
+      webSocketServer.begin();
+      webSocketServer.onEvent(onWebSocketEvent);
+  }
 }
 
 void loop() {
@@ -649,5 +686,5 @@ void loop() {
   }
 
   // handle webSocket data
-  webSocketServer.loop();
+  //webSocketServer.loop();
 }
