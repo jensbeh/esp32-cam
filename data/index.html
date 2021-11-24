@@ -45,33 +45,37 @@
 
 
 
-  <form action="/" method="post" id="my-form">
 
-    <div class="popup_overlay" style="width: 100%; height: 100%;">
-      <div class="popup-content">
-        <h1 id="popupWifiName" style="color: white;">nameplaceholder</h1>
-        <input id="wifiName" type="hidden" name="networkName" value="" />
-        <h5 style="color: white;">Please put in below the password of the network to connect.</h5>
-        <div class="part">
-          <input id="inputPassword" class="inputPassword" required="required" placeholder="Password"
-            name="networkPassword" value="" type="password">
-            <label id="errorLabel" class="errorLabel">ERROR HERE</label>
-        </div>
 
-        <button type="submit" class="connectToWifiButton" onClick="showLoading()">Connect!</button>
+  <div class="popup_overlay" style="width: 100%; height: 100%;">
+    <div class="popup-content">
+      <h1 id="popupWifiName" style="color: white;">nameplaceholder</h1>
+      <input id="wifiName" type="hidden" name="networkName" value="" />
+      <h5 style="color: white;">Please put in below the password of the network to connect.</h5>
+      <div class="part">
+        <input id="inputPassword" class="inputPassword" required="required" placeholder="Password"
+          name="networkPassword" value="" type="password">
+          <label id="errorLabel" class="errorLabel">ERROR HERE</label>
+      </div>
 
-        <div style="width: 100%; height: 100%; display: flex; justify-content: end;">
-          <button type="button" class="closePopupButton" onClick="closePopup()">X</button>
-        </div>
+      <button type="button" class="connectToWifiButton" onClick="connectToWiFi()">Connect!</button>
+
+      <div style="width: 100%; height: 100%; display: flex; justify-content: end;">
+        <button type="button" class="closePopupButton" onClick="closePopup()">X</button>
       </div>
     </div>
+  </div>
 
-  </form>
+
+
 
   <div class="loader_overlay" style="width: 100%; height: 100%;">
     <div class="loader-content">
     </div>
   </div>
+
+
+
 
 
   <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
@@ -100,6 +104,37 @@
     function showPasswordError() {
       console.log("SHOW PASSWORD ERROR LABEL");
       $(".errorLabel").show().delay(10000).fadeOut();
+    }
+
+    function connectToWiFi() {
+      showLoading();
+      sendWiFiCredentials();
+    }
+
+    function sendWiFiCredentials() {
+      var xhttp = new XMLHttpRequest();
+
+      xhttp.open("POST", "connectWiFi", true);
+
+      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+
+      xhttp.onreadystatechange = function() {//Call a function when the state changes.
+        if(xhttp.readyState == 4 && xhttp.status == 200) {
+          //document.open();
+          //document.write(xhttp.responseText);
+          //document.close();
+          $("body").html(xhttp.responseText);
+        }
+        else if(xhttp.readyState == 4 && xhttp.status == 401) {
+          console.log(xhttp.responseText);
+          hideLoading();
+          showPasswordError();
+        }
+      }
+      
+      var nameAndPasswort = 'networkName=' + document.getElementById("wifiName").value + '&networkPassword=' + document.getElementById("inputPassword").value;
+      xhttp.send(nameAndPasswort);
     }
 
   </script>

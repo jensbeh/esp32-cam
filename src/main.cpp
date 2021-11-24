@@ -485,9 +485,8 @@ void handle_streams() {
 }
 
 void handle_wifiSetupHtml() {
-
       File webFile = SPIFFS.open("/index.html", "r");
-      webServer.streamFile(webFile, "text/html");
+      webServer.send(200, "text/html", webFile.readString());
       webFile.close();
 }
 void handle_wifiSetupCss() {
@@ -504,21 +503,27 @@ void handle_incomingWifiCredentials() {
 
     Serial.println(String(networkName));
     Serial.println(networkPassword);
+
+    // check if password is correct else throw error
+
     if (String(networkPassword) == "401") {
-      webServer.send(401, "text/html", "ERROR 401 Test 1");
+      webServer.send(401, "text/plain", "ERROR 401 Test 1");
     } else {
 
     // write into SPIFFS
-      File webFile = SPIFFS.open("/success.html", "r");
-      webServer.streamFile(webFile, "text/html");
-      webFile.close();
+
+    // send succes body
+    File webFile = SPIFFS.open("/success.html", "r");
+    webServer.streamFile(webFile, "text/html");
+    webServer.send(200, "text/html", webFile.readString());
+    webFile.close();
 
     // restart when new credentials are set
     //ESP.restart();
     }
   } else {
     Serial.print("HERE4");
-    webServer.send(401, "text/html", "ERROR 401 Test 2");
+    webServer.send(401, "text/plain", "ERROR 401 Test 2");
   }
 }
 
@@ -584,9 +589,10 @@ void setup() {
   // setup webServer
   webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
   webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
-  webServer.on("/", HTTP_GET, handle_wifiSetupHtml);
+  webServer.on("/", handle_wifiSetupHtml);
   webServer.on("/style.css", HTTP_GET, handle_wifiSetupCss);
-  webServer.on("/", HTTP_POST, handle_incomingWifiCredentials);
+  webServer.on("/connectWiFi", handle_incomingWifiCredentials);
+  
   webServer.onNotFound(handleNotFound);
   webServer.begin();
 
@@ -599,7 +605,6 @@ void setup() {
   // create indexHtml
   //WiFi.mode(WIFI_STA);
   //WiFi.disconnect();
-  Serial.println(WiFi.scanNetworks());
   int n = WiFi.scanNetworks();
 
   String indexHtmlStr = indexHtml_part1;
