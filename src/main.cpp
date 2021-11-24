@@ -486,12 +486,14 @@ void handle_streams() {
 
 void handle_wifiSetupHtml() {
 
-      File webFile = SPIFFS.open("/newIndex.html", "r");
+      File webFile = SPIFFS.open("/index.html", "r");
       webServer.streamFile(webFile, "text/html");
+      webFile.close();
 }
 void handle_wifiSetupCss() {
       File webFile = SPIFFS.open("/style.css", "r");
       webServer.streamFile(webFile, "text/css");
+      webFile.close();
 }
 void handle_incomingWifiCredentials() {
   if (webServer.hasArg("networkName") && webServer.hasArg("networkPassword")) {
@@ -503,18 +505,20 @@ void handle_incomingWifiCredentials() {
     Serial.println(String(networkName));
     Serial.println(networkPassword);
     if (String(networkPassword) == "401") {
-      webServer.send(401, "text/html");
+      webServer.send(401, "text/html", "ERROR 401 Test 1");
     } else {
-    // write into SPIFFS
 
+    // write into SPIFFS
       File webFile = SPIFFS.open("/success.html", "r");
       webServer.streamFile(webFile, "text/html");
+      webFile.close();
 
     // restart when new credentials are set
     //ESP.restart();
     }
   } else {
-    webServer.send(401, "text/html");
+    Serial.print("HERE4");
+    webServer.send(401, "text/html", "ERROR 401 Test 2");
   }
 }
 
@@ -562,7 +566,7 @@ void setup() {
   cam.init();
 
   // setup wifi
-  WiFi.begin(ssid, password);
+  WiFi.begin("HomeWiFi", "Jena7117");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");

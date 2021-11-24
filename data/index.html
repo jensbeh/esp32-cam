@@ -82,7 +82,7 @@
       document.getElementById("popupWifiName").textContent = stringwifi;
       document.getElementById("wifiName").value = stringwifi;
       document.getElementById("inputPassword").value = "";
-      document.getElementById("errorLabel").hide(0);
+      $(".errorLabel").hide(0);
     }
     function closePopup() {
       $(".popup_overlay").fadeOut(300);
@@ -97,27 +97,6 @@
       $(".loader_overlay").fadeOut(300);
     }
 
-    $("#my-form").submit(function (e) {
-      e.preventDefault();
-      var form = $(this);
-      var url = form.attr('action');
-      console.log("TEST1");
-      $.ajax({
-        type: "POST",
-        url: url,
-        data: form.serialize(),
-        success: function (data) {
-
-        },
-        error: function (data) {
-          if (data.status == 401) {
-            console.log("TEST3");
-            hideLoading();
-            showPasswordError();
-          }
-        }
-      });
-    });
     function showPasswordError() {
       console.log("SHOW PASSWORD ERROR LABEL");
       $(".errorLabel").show().delay(10000).fadeOut();
