@@ -114,6 +114,7 @@
         var xhttp = new XMLHttpRequest();
 
         xhttp.open("POST", "connectWiFi", true);
+        xhttp.timeout = 30000;
         
         xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 

@@ -520,6 +520,7 @@ void createIndexHtml() {
 
 void handle_wifiSetupHtml() {
       // first create indexHtml with avaiable wifis
+      createIndexHtml();
 
       File webFile = SPIFFS.open("/newIndex.html", "r");
       webServer.send(200, "text/html", webFile.readString());
@@ -548,24 +549,51 @@ void handle_incomingWifiCredentials() {
     // check if password is correct else throw error
 
     if (String(networkPassword) == "401") {
-      webServer.send(401, "text/plain", "ERROR 401 Test 1");
+      webServer.send(401, "text/plain", "Can't connect! Pls check your password...");
     } else {
+    WiFi.disconnect(true);
+    WiFi.begin(networkName, networkPassword);
+    while (WiFi.status() == WL_NO_SHIELD) { // connecting to wifimodule
+      delay(500);
+      Serial.print(".");
+      Serial.println(WiFi.status());
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+      // write into SPIFFS
+      File writeWifiCredentials = SPIFFS.open("/wifiCredentials.txt", "w");
+      String toWrite = String(networkName) + '\n' + String(networkPassword) + '\n';
+      Serial.println(toWrite);
+      writeWifiCredentials.println(toWrite);
+      writeWifiCredentials.close();
+      
 
-    // write into SPIFFS
+      // send succes body
+      File webFile = SPIFFS.open("/success.html", "r");
+      webServer.send(200, "text/html", webFile.readString());
+      webFile.close();
 
-    // send succes body
-    File webFile = SPIFFS.open("/success.html", "r");
-    webServer.streamFile(webFile, "text/html");
-    webServer.send(200, "text/html", webFile.readString());
-    webFile.close();
+      // restart when new credentials are set
+      ESP.restart();
 
-    // restart when new credentials are set
-    //ESP.restart();
+    } else {
+      WiFi.disconnect();
+      webServer.send(401, "text/plain", "Can't connect! Pls check your password...");
+    }
+
+
     }
   } else {
-    Serial.print("HERE4");
-    webServer.send(401, "text/plain", "ERROR 401 Test 2");
+    webServer.send(401, "text/plain", "Wrong Args");
   }
+}
+
+void handle_resetWiFi() {
+  SPIFFS.remove("/wifiCredentials.txt");
+
+  File writeWifiCredentials = SPIFFS.open("/wifiCredentials.txt", "w");
+  writeWifiCredentials.close();
+
+  ESP.restart();
 }
 
 void setup() {
@@ -588,7 +616,7 @@ void setup() {
   char wifiCredentialsPw [512] = {'\0'};
   uint16_t i = 0;
   while (readWifiCredentials.available()) {
-     wifiCredentialsFileContent [i] = readWifiCredentials.read();
+     wifiCredentialsFileContent[i] = readWifiCredentials.read();
      i++;
   }
   readWifiCredentials.close();
@@ -597,11 +625,15 @@ void setup() {
   bool firstWord = true;
   bool secondWord = false;
   int lenFirstWord;
-  for (int j = 0; j < i + 1; j++) {
-    if (wifiCredentialsSsid[j] == ' ') {
+  for (int j = 0; j < i; j++) {
+    if (wifiCredentialsFileContent[j] == '\n' && firstWord) {
       firstWord = false;
       secondWord = true;
       lenFirstWord = j + 1;
+      continue;
+    }
+    else if (wifiCredentialsFileContent[j] == '\n' && secondWord) {
+      secondWord = false;
       continue;
     }
     if (firstWord) {
@@ -611,11 +643,12 @@ void setup() {
     }
   }
 
+  Serial.println(wifiCredentialsSsid);
+  Serial.println(wifiCredentialsPw);
+
   // if there are no wifi credentials
   if (String(wifiCredentialsSsid) == "") {
     Serial.println("EMPTY");
-      createIndexHtml();
-
 
     // get new wifi here
     const char *soft_ap_ssid = "ESP32 Camera";
@@ -625,7 +658,7 @@ void setup() {
 
     //IPAddress subnet(255, 255, 0, 0);
 
-    WiFi.mode(WIFI_AP);
+    WiFi.mode(WIFI_AP_STA);
     //WiFi.config(local_IP, gateway, subnet);
 
     WiFi.softAP(soft_ap_ssid, NULL);
@@ -652,6 +685,7 @@ void setup() {
       // setup cam
       cam.init();
 
+      WiFi.mode(WIFI_STA);
       // setup wifi
       WiFi.begin(wifiCredentialsSsid, wifiCredentialsPw);
       while (WiFi.status() != WL_CONNECTED) {
@@ -671,6 +705,7 @@ void setup() {
       // setup webServer
       webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
       webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
+      webServer.on("/resetWiFi", HTTP_GET, handle_resetWiFi);
 
       webServer.onNotFound(handleNotFound);
       webServer.begin();
