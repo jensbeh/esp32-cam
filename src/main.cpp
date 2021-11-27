@@ -549,7 +549,7 @@ void handle_incomingWifiCredentials() {
     WiFi.begin(networkName, networkPassword);
     delay(250);
     unsigned int startTime = millis();
-    while ((WiFi.status() == WL_NO_SHIELD) || (WiFi.status() == WL_DISCONNECTED)) { // WL_NO_SHIELD = connecting to wifimodule
+    while ((WiFi.status() == WL_NO_SHIELD) || (WiFi.status() == WL_DISCONNECTED)) { // WL_NO_SHIELD = connecting to wifimodule; need to wait here with WL_DISCONNECTED because of wrong password
       delay(500);
       Serial.print(".");
       if (millis() - startTime >= 20000) { // timeout after 20 sec trying to connect
