@@ -542,46 +542,45 @@ void handle_incomingWifiCredentials() {
     String pw = webServer.arg("networkPassword").c_str();
     const char *networkName = name.c_str();
     const char *networkPassword = pw.c_str();
-
-    Serial.println(String(networkName));
-    Serial.println(networkPassword);
+    //Serial.println(networkName);
+    //Serial.println(networkPassword);
 
     // check if password is correct else throw error
-
-    if (String(networkPassword) == "401") {
-      webServer.send(401, "text/plain", "Can't connect! Pls check your password...");
-    } else {
-    WiFi.disconnect(true);
     WiFi.begin(networkName, networkPassword);
-    while (WiFi.status() == WL_NO_SHIELD) { // connecting to wifimodule
+    delay(250);
+    unsigned int startTime = millis();
+    while ((WiFi.status() == WL_NO_SHIELD) || (WiFi.status() == WL_DISCONNECTED)) { // WL_NO_SHIELD = connecting to wifimodule
       delay(500);
       Serial.print(".");
-      Serial.println(WiFi.status());
+      if (millis() - startTime >= 20000) { // timeout after 20 sec trying to connect
+        break;
+      }
     }
     if (WiFi.status() == WL_CONNECTED) {
       // write into SPIFFS
       File writeWifiCredentials = SPIFFS.open("/wifiCredentials.txt", "w");
       String toWrite = String(networkName) + '\n' + String(networkPassword) + '\n';
-      Serial.println(toWrite);
       writeWifiCredentials.println(toWrite);
       writeWifiCredentials.close();
       
 
-      // send succes body
+      // send succes body - client will confirm if arrived with "showedSuccess=1" so the esp can be reset
       File webFile = SPIFFS.open("/success.html", "r");
       webServer.send(200, "text/html", webFile.readString());
       webFile.close();
 
-      // restart when new credentials are set
-      ESP.restart();
-
     } else {
-      WiFi.disconnect();
-      webServer.send(401, "text/plain", "Can't connect! Pls check your password...");
+        WiFi.enableSTA(true); // needed because after "WL_DISCONNECTED" error e.g. wrong password the Station Mode (STA) is disabled???
+        webServer.send(401, "text/plain", "Can't connect! Pls check your password...");
     }
+  }
 
-
-    }
+  else if (webServer.hasArg("showedSuccess")) {
+      // restart when new credentials are set and successScreen was send to client - client will confirm with showedSuccess
+      String state = webServer.arg("showedSuccess").c_str();
+      if (state == "1") {
+        ESP.restart();
+      } 
   } else {
     webServer.send(401, "text/plain", "Wrong Args");
   }

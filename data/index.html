@@ -122,6 +122,11 @@
         xhttp.onreadystatechange = function () {
           if (xhttp.readyState === 4 && xhttp.status === 200) {
             $("body").html(xhttp.responseText);
+
+            xhttp.open("POST", "connectWiFi", true);
+            xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            const stateSuccess = "showedSuccess=" + 1;
+            xhttp.send(stateSuccess);
           }
           else if (xhttp.readyState === 4 && xhttp.status === 401) {
             console.log(xhttp.responseText);
