@@ -685,6 +685,7 @@ void setup() {
       cam.init();
 
       WiFi.mode(WIFI_STA);
+      WiFi.setHostname("ESP-Camera");
       // setup wifi
       WiFi.begin(wifiCredentialsSsid, wifiCredentialsPw);
       while (WiFi.status() != WL_CONNECTED) {
@@ -726,5 +727,5 @@ void loop() {
   }
 
   // handle webSocket data
-  //webSocketServer.loop();
+  webSocketServer.loop();
 }
