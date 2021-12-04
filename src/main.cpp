@@ -20,6 +20,7 @@ const char* ssid = myWifiSsid;
 const char* password = myWifiPassword;
 
 OV2640 cam;
+uint8_t camFlashlightState = 0;
 
 WebServer webServer(80);
 WebSocketsServer webSocketServer = WebSocketsServer(81);
@@ -302,6 +303,18 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 
       sendToWebSocketClients(message);
     }
+    //flashlight= -> 0 = disable , 1 = enable
+    else if (message.indexOf(FLASHLIGHT_PATH) != -1) {
+      String value = message.substring(message.indexOf("=") + 1, message.length());
+      camFlashlightState = atoi(value.c_str());
+      if (camFlashlightState == 1) {
+        digitalWrite(FLASHLIGHT_PIN, HIGH);
+      } else {
+        digitalWrite(FLASHLIGHT_PIN, LOW);
+      }
+
+      sendToWebSocketClients(message);
+    }
   }
 }
 
@@ -392,6 +405,9 @@ void sendCameraInitsToWebSocketClient(uint8_t num) {
       webSocketServer.sendTXT(num, txCmd);
       // colorbar
       txCmd = CAM_CONTROLS_PATH + COLORBAR_PATH + String(cam.getColorbar());
+      webSocketServer.sendTXT(num, txCmd);
+      // flashlight
+      txCmd = CAM_CONTROLS_PATH + FLASHLIGHT_PATH + String(camFlashlightState);
       webSocketServer.sendTXT(num, txCmd);
 }
 
@@ -597,6 +613,9 @@ void handle_resetWiFi() {
 
 void setup() {
   Serial.begin(115200);
+
+  // pins
+  pinMode(FLASHLIGHT_PIN, OUTPUT);
 
   // read SPIFFS
   if (!SPIFFS.begin(true)) {

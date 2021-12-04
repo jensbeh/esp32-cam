@@ -1,5 +1,8 @@
 #include "Arduino.h"
 
+// Pins
+static int FLASHLIGHT_PIN = 4;
+
 // Paths
 static String STREAM_PATH = "/stream";
 static String CAPTURE_PATH = "/capture";
@@ -30,3 +33,4 @@ static String LENC_PATH = "lenc="; // 0 = disable , 1 = enable
 static String HMIRROR_PATH = "hmirror="; // 0 = disable , 1 = enable
 static String VFLIP_PATH = "vflip="; // 0 = disable , 1 = enable
 static String COLORBAR_PATH = "colorbar="; // 0 = disable , 1 = enable
+static String FLASHLIGHT_PATH = "flashlight="; // 0 = disable , 1 = enable
