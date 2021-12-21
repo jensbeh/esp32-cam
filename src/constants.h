@@ -2,6 +2,7 @@
 
 // Pins
 static int FLASHLIGHT_PIN = 4;
+static int MOTION_PIN = 2;
 
 // Paths
 static String STREAM_PATH = "/stream";
@@ -34,3 +35,7 @@ static String HMIRROR_PATH = "hmirror="; // 0 = disable , 1 = enable
 static String VFLIP_PATH = "vflip="; // 0 = disable , 1 = enable
 static String COLORBAR_PATH = "colorbar="; // 0 = disable , 1 = enable
 static String FLASHLIGHT_PATH = "flashlight="; // 0 = disable , 1 = enable
+
+// Notifications
+static String CAM_NOTIFICATION_PATH = "camNotification/";
+static String MOTION_DETECTED_PATH = "motionDetection";

@@ -21,6 +21,7 @@ const char* password = myWifiPassword;
 
 OV2640 cam;
 uint8_t camFlashlightState = 0;
+bool currentMotion = false;
 
 WebServer webServer(80);
 WebSocketsServer webSocketServer = WebSocketsServer(81);
@@ -318,6 +319,11 @@ void handle_WS(uint8_t num, uint8_t * payload) {
   }
 }
 
+void sendMotionDetectionToClients() {
+      String message = CAM_NOTIFICATION_PATH + MOTION_DETECTED_PATH;
+      sendToWebSocketClients(message);
+}
+
 // handle disconnected clients and remove from wiFiClientsVector
 void removeWSClient(uint8_t num) {
   int index = 0;
@@ -427,11 +433,11 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
       Serial.println(ip.toString());
 
       // add new clientId to clientIdsVector
-      clientIdsVector.push_back(num);
-      Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
+        clientIdsVector.push_back(num);
+        Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
 
-      // send camera settings here
-      sendCameraInitsToWebSocketClient(num);
+        // send camera settings here
+        sendCameraInitsToWebSocketClient(num);
       }
       break;
 
@@ -616,6 +622,7 @@ void setup() {
 
   // pins
   pinMode(FLASHLIGHT_PIN, OUTPUT);
+  pinMode(MOTION_PIN, INPUT);     // declare sensor as input
 
   // read SPIFFS
   if (!SPIFFS.begin(true)) {
@@ -747,4 +754,23 @@ void loop() {
 
   // handle webSocket data
   webSocketServer.loop();
+
+
+  int state = digitalRead(MOTION_PIN);
+  if (state == HIGH && !currentMotion) {
+    // motion begins
+    currentMotion = true;
+    Serial.println("MOTION START");
+
+    // send motion webSocket message
+    if (webSocketServer.connectedClients() > 0) {
+      Serial.println("MOTION SEND TO CLIENTS");
+      sendMotionDetectionToClients();
+    }
+
+  } else if (state == LOW && currentMotion) {
+    // reset motion
+    currentMotion = false;
+    Serial.println("MOTION STOP");
+  }
 }
