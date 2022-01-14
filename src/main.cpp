@@ -88,6 +88,12 @@ void sendToWebSocketClients(String message) {
   }
 }
 
+void sendToWebSocketClientsBin(uint8_t *payload, size_t length) {
+  for (uint8_t numId : clientIdsVector) {
+    webSocketServer.sendBIN(numId, payload, length);
+  }
+}
+
 // handle incoming WS commands
 void handle_WS(uint8_t num, uint8_t * payload) {
   // string to uint8_t -> "string".getBytes(); Maybe with string length
@@ -320,8 +326,14 @@ void handle_WS(uint8_t num, uint8_t * payload) {
 }
 
 void sendMotionDetectionToClients() {
-      String message = CAM_NOTIFICATION_PATH + MOTION_DETECTED_PATH;
-      sendToWebSocketClients(message);
+  // make picture
+  cam.makeFrameBuffer();
+
+  String message = CAM_NOTIFICATION_PATH + MOTION_DETECTED_PATH;
+  sendToWebSocketClients(message);
+
+  // send picture
+  sendToWebSocketClientsBin(cam.getFrameBuffer(), cam.getSize());
 }
 
 // handle disconnected clients and remove from wiFiClientsVector
@@ -731,7 +743,7 @@ void setup() {
       // setup webServer
       webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
       webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
-      webServer.on("/resetWiFi", HTTP_GET, handle_resetWiFi);
+      webServer.on("/reset", HTTP_GET, handle_resetWiFi);
 
       webServer.onNotFound(handleNotFound);
       webServer.begin();
