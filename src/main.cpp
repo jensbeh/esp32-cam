@@ -11,6 +11,9 @@
 
 #include <SPIFFS.h>
 
+// Methods declarations
+void sendCameraInitsToWebSocketClient(uint8_t num);
+
 // create wifi_settings.h and insert:
 /*
 #define myWifiSsid "yourSsid"
@@ -104,8 +107,13 @@ void handle_WS(uint8_t num, uint8_t * payload) {
   // camControls/
   if (message.indexOf(CAM_CONTROLS_PATH) != -1) {
 
+    // websocketClient's espCamera needs to be updated
+    if (message.indexOf(UPDATE_CAMERA_PATH) != -1) {
+        sendCameraInitsToWebSocketClient(num);
+    }
+
     //framesize= -> 0,3,4,5,6,7,8,9,10
-    if (message.indexOf(FRAMESIZE_PATH) != -1) {
+    else if (message.indexOf(FRAMESIZE_PATH) != -1) {
       String value = message.substring(message.indexOf("=") + 1, message.length());
       int8_t newFramesize = atoi(value.c_str());
       cam.setFrameSize((framesize_t)newFramesize);
