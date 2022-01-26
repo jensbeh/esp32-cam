@@ -1,37 +1,23 @@
 #include "main.h"
 #include "cam/OV2640.h"
-#include "wifi_settings.h"
 #include "constants.h"
 
 #include <WebServer.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-
 #include <WebSocketsServer.h>
-
 #include <SPIFFS.h>
 
-// Methods declarations
-void sendCameraInitsToWebSocketClient(uint8_t num);
-
-// create wifi_settings.h and insert:
-/*
-#define myWifiSsid "yourSsid"
-#define myWifiPassword "yourPassword"
-*/
-const char* ssid = myWifiSsid;
-const char* password = myWifiPassword;
-
+// variables
 OV2640 cam;
 uint8_t camFlashlightState = 0;
 bool currentMotion = false;
-
-WebServer webServer(80);
-WebSocketsServer webSocketServer = WebSocketsServer(81);
-
-// handling multiple clients
 std::vector<WiFiClient> wiFiClientsVector;
 std::vector<uint8_t> clientIdsVector;
+
+// server
+WebServer webServer(80);
+WebSocketsServer webSocketServer = WebSocketsServer(81);
 
 // stream header
 const char HEADER[] = "HTTP/1.1 200 OK\r\n" \
@@ -49,30 +35,27 @@ const char JHEADER[] = "HTTP/1.1 200 OK\r\n" \
                        "Content-type: image/jpeg\r\n\r\n";
 const int jhdLen = strlen(JHEADER);
 
+// methods declarations
+void sendCameraInitsToWebSocketClient(uint8_t num);
+
+/*
+* method to handle/save new webServerClients to steam video to
+*/
 void handle_new_streamClient() {
-  //clients[clientsCounter] = webServer.client();
   WiFiClient wifiClient = webServer.client();
   wifiClient.write(HEADER, hdrLen);
   wifiClient.write(BOUNDARY, bdrLen);
 
   // set new client to vector
   wiFiClientsVector.push_back(wifiClient);
-  //clientsCounter++;
 
-  Serial.print("New WebServerClient connected - ");
+  Serial.print("New WebServer-Client connected -> ");
   Serial.println(wifiClient.remoteIP());
 }
 
-void handle_jpg() {
-  WiFiClient client = webServer.client();
-
-  if (!client.connected()) return;
-  cam.makeFrameBuffer();
-  client.write(JHEADER, jhdLen);
-  client.write((char *)cam.getFrameBuffer(), cam.getSize());
-}
-
-// handle invalid webServer comands
+/*
+* method to handle invalid webServer commands
+*/
 void handleNotFound() {
   String message = "Server is running!\n\n";
   message += "URI: ";
@@ -85,25 +68,32 @@ void handleNotFound() {
   webServer.send(200, "text / plain", message);
 }
 
+/*
+* method to send string message to all webSocketClients
+*/
 void sendToWebSocketClients(String message) {
   for (uint8_t numId : clientIdsVector) {
     webSocketServer.sendTXT(numId, message);
   }
 }
 
+/*
+* method to send binary message to all webSocketClients like picture
+*/
 void sendToWebSocketClientsBin(uint8_t *payload, size_t length) {
   for (uint8_t numId : clientIdsVector) {
     webSocketServer.sendBIN(numId, payload, length);
   }
 }
 
-// handle incoming WS commands
+/*
+* method to handle incoming webSocket commands
+* sends message back to client as confirmation
+*/
 void handle_WS(uint8_t num, uint8_t * payload) {
-  // string to uint8_t -> "string".getBytes(); Maybe with string length
-  // uint8_t to string -> (char *) payload
-
   String message = (char *)payload;
   Serial.println(message);
+
   // camControls/
   if (message.indexOf(CAM_CONTROLS_PATH) != -1) {
 
@@ -333,6 +323,9 @@ void handle_WS(uint8_t num, uint8_t * payload) {
   }
 }
 
+/*
+* method to send the motion detected message and picture to all webSocketClients
+*/
 void sendMotionDetectionToClients() {
   // make picture
   cam.makeFrameBuffer();
@@ -344,7 +337,9 @@ void sendMotionDetectionToClients() {
   sendToWebSocketClientsBin(cam.getFrameBuffer(), cam.getSize());
 }
 
-// handle disconnected clients and remove from wiFiClientsVector
+/*
+* method to handle disconnected webSocketClient and remove from clientIdsVector
+*/
 void removeWSClient(uint8_t num) {
   int index = 0;
   for (uint8_t numId : clientIdsVector) {
@@ -359,6 +354,9 @@ void removeWSClient(uint8_t num) {
   clientIdsVector.erase(clientIdsVector.begin() + index);
 }
 
+/*
+* method to send all current values of the espCamera to the webSocketClient
+*/
 void sendCameraInitsToWebSocketClient(uint8_t num) {
         // framesize
       String txCmd = CAM_CONTROLS_PATH + FRAMESIZE_PATH + String(cam.getFrameSize());
@@ -437,42 +435,40 @@ void sendCameraInitsToWebSocketClient(uint8_t num) {
       webSocketServer.sendTXT(num, txCmd);
 }
 
-// is called when receiving any webSocket message
+/*
+* method is called when receiving a webSocket Event (connected, disconnected, message, ...)
+* num = id of cliend
+* type = type of the event
+* payload = data as raw bytes
+* length = how many bytes are in the data
+*/
 void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
-  // num = id of cliend, up to 5!
-  // type = type of the message
-  // payload = data as raw bytes
-  // length = how many bytes are in the data
-
-  // which webSocket event?
   switch(type) {
     // new client has connected
     case WStype_CONNECTED: {
       IPAddress ip = webSocketServer.remoteIP(num);
-      Serial.printf("[%u] New WSClient Connection from ", num);
+      Serial.printf("[%u] New WebSocketClient -> ", num);
       Serial.println(ip.toString());
 
       // add new clientId to clientIdsVector
-        clientIdsVector.push_back(num);
-        Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
+      clientIdsVector.push_back(num);
+      Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
 
-        // send camera settings here
-        sendCameraInitsToWebSocketClient(num);
-      }
-      break;
+      // send all camera settings here
+      sendCameraInitsToWebSocketClient(num);
+    }
+    break;
 
     // client has disconnected
     case WStype_DISCONNECTED: {
-      IPAddress ip = webSocketServer.remoteIP(num);
-
       // remove clientId from clientIdsVector
       removeWSClient(num);
       Serial.printf("WSClient has disconnected!\n");
       Serial.println("clientIdsVectorSize: " + String(clientIdsVector.size()));
-      }
-      break;
+    }
+    break;
 
-    // echo text message back to client
+    // handle incoming message
     case WStype_TEXT: {
       Serial.printf("[%u] Text: %s\n", num, payload);
       handle_WS(num, payload);
@@ -491,7 +487,9 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
   }
 }
 
-// handle disconnected clients and remove from wiFiClientsVector
+/*
+* method to handle check if clients disconnected and remove from wiFiClientsVector for webServer-streams
+*/
 void checkIfClientsDisconnect() {
   std::vector<int> disconnectedClients;
   for (std::vector<WiFiClient>::iterator i = wiFiClientsVector.begin(); i != wiFiClientsVector.end(); ++i) {
@@ -508,7 +506,10 @@ void checkIfClientsDisconnect() {
   disconnectedClients.clear();
 }
 
-// send frameBuffer to all clients
+/*
+* method to handle webServer camera stream
+* sends frameBuffer to all clients
+*/
 void handle_streams() {
   char buf[32];
   int s;
@@ -526,21 +527,16 @@ void handle_streams() {
   }
 }
 
+/*
+* method to create the main html-page with scanned and reachable wifi-networks
+*/
 void createIndexHtml() {
   // get all avaiable wifis nearby
   int n = WiFi.scanNetworks();
+
+  // create newIndex/main html page
   String indexHtmlStr = indexHtml_part1;
   for (int i = 0; i < n; ++i) {
-    // Print SSID and RSSI for each network found
-    Serial.print(i + 1);
-    Serial.print(": ");
-    Serial.print(WiFi.SSID(i)); // SSID
-    Serial.print(" (");
-    Serial.print(WiFi.BSSIDstr(i)); // MAC
-    Serial.print(")");
-    Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_WPA2_PSK)?" ":"*");
-    delay(10);
-
     String BSSIDstr = WiFi.BSSIDstr(i);
     BSSIDstr.replace(":", "");
 
@@ -555,37 +551,56 @@ void createIndexHtml() {
     }
   }
   indexHtmlStr += indexHtml_part2;
+
+  // writes new index.html to storage of esp to send the new page to client
   File webFile = SPIFFS.open("/newIndex.html", "w");
   webFile.print(indexHtmlStr);
   webFile.close();
 }
 
+/*
+* method to request for setup wifi with all avaiable wifi's it could connect to
+*/
 void handle_wifiSetupHtml() {
-      // first create indexHtml with avaiable wifis
-      createIndexHtml();
+  // first create indexHtml with avaiable wifis
+  createIndexHtml();
 
-      File webFile = SPIFFS.open("/newIndex.html", "r");
-      webServer.send(200, "text/html", webFile.readString());
-      webFile.close();
+  // send indexHtml to client
+  File webFile = SPIFFS.open("/newIndex.html", "r");
+  webServer.send(200, "text/html", webFile.readString());
+  webFile.close();
 }
+
+/*
+* method to request the style.css file to client 
+*/
 void handle_wifiSetupCss() {
-      File webFile = SPIFFS.open("/style.css", "r");
-      webServer.streamFile(webFile, "text/css");
-      webFile.close();
+  // send style.css to client
+  File webFile = SPIFFS.open("/style.css", "r");
+  webServer.streamFile(webFile, "text/css");
+  webFile.close();
 }
+
+/*
+* method to request the jquery.js file to client 
+*/
 void handle_wifiSetupJQuery() {
-      File webFile = SPIFFS.open("/jquery.js", "r");
-      webServer.streamFile(webFile, "text/js");
-      webFile.close();
+  // send jquery.js to client
+  File webFile = SPIFFS.open("/jquery.js", "r");
+  webServer.streamFile(webFile, "text/js");
+  webFile.close();
 }
+
+/*
+* method to handle the "connect to wifi" action when user wants connects to wifi on index.html
+* checks if the network can be connect -> send success back to client | else -> send error in credentials back to client
+*/
 void handle_incomingWifiCredentials() {
   if (webServer.hasArg("networkName") && webServer.hasArg("networkPassword")) {
     String name = webServer.arg("networkName").c_str();
     String pw = webServer.arg("networkPassword").c_str();
     const char *networkName = name.c_str();
     const char *networkPassword = pw.c_str();
-    //Serial.println(networkName);
-    //Serial.println(networkPassword);
 
     // check if password is correct else throw error
     WiFi.begin(networkName, networkPassword);
@@ -598,6 +613,7 @@ void handle_incomingWifiCredentials() {
         break;
       }
     }
+    // if wifi is connected
     if (WiFi.status() == WL_CONNECTED) {
       // write into SPIFFS
       File writeWifiCredentials = SPIFFS.open("/wifiCredentials.txt", "w");
@@ -628,6 +644,9 @@ void handle_incomingWifiCredentials() {
   }
 }
 
+/*
+* method to reset espCameras wifi connection and restart the esp
+*/
 void handle_resetWiFi() {
   SPIFFS.remove("/wifiCredentials.txt");
 
@@ -637,6 +656,9 @@ void handle_resetWiFi() {
   ESP.restart();
 }
 
+/*
+* method to setup the esp on boot with all necessary stuff
+*/
 void setup() {
   Serial.begin(115200);
 
@@ -691,28 +713,17 @@ void setup() {
   Serial.println(wifiCredentialsSsid);
   Serial.println(wifiCredentialsPw);
 
-  // if there are no wifi credentials
+  // if there are NO wifi credentials
   if (String(wifiCredentialsSsid) == "") {
-    Serial.println("EMPTY");
+    Serial.println("WiFi Credentials EMPTY");
 
-    // get new wifi here
+    // name of the esp shown in wifi scanner
     const char *soft_ap_ssid = "ESP32 Camera";
-    //IPAddress local_IP(192, 168, 1, 184);
-    // Set your Gateway IP address
-    //IPAddress gateway(192, 168, 1, 1);
 
-    //IPAddress subnet(255, 255, 0, 0);
-
-    WiFi.mode(WIFI_AP_STA);
-    //WiFi.config(local_IP, gateway, subnet);
-
+    WiFi.mode(WIFI_AP_STA); // needs good quality power supply and cable and to not call the "Brownout detector was triggered"-error
     WiFi.softAP(soft_ap_ssid, NULL);
+    Serial.printf("WiFi-SoftAP IP: -> ");
     Serial.println(WiFi.softAPIP());
-
-    Serial.println(SPIFFS.exists("/index.html"));
-    Serial.println(SPIFFS.exists("/newIndex.html"));
-    Serial.println(SPIFFS.exists("/style.css"));
-    Serial.println(SPIFFS.exists("/success.html"));
 
     webServer.on("/", handle_wifiSetupHtml);
     webServer.on("/style.css", HTTP_GET, handle_wifiSetupCss);
@@ -720,48 +731,44 @@ void setup() {
     webServer.on("/connectWiFi", handle_incomingWifiCredentials);
     webServer.onNotFound(handleNotFound);
     webServer.begin();
-
-
-    //wifiCredentials.println("TEST");
-    //wifiCredentials.flush();
-  } else {
-    Serial.println("NOT EMPTY");
+  } 
+  // if there are wifi credentials
+  else {
+    Serial.println("WiFi Credentials NOT EMPTY");
     
-      // setup cam
-      cam.init();
+    // setup cam
+    cam.init();
 
-      WiFi.mode(WIFI_STA);
-      WiFi.setHostname("ESP-Camera");
-      // setup wifi
-      WiFi.begin(wifiCredentialsSsid, wifiCredentialsPw);
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
-      IPAddress ip = WiFi.localIP();
-      Serial.print("WiFi connected - ip: ");
-      Serial.println(ip);
-      Serial.print("Stream Link: http://");
-      Serial.print(ip);
-      Serial.println(STREAM_PATH);
-      Serial.print("Capture Link: http://");
-      Serial.print(ip);
-      Serial.println(CAPTURE_PATH);
+    // setup wifi
+    WiFi.mode(WIFI_STA); // needs good quality power supply and cable and to not call the "Brownout detector was triggered"-error
+    WiFi.setHostname("ESP-Camera");
+    WiFi.begin(wifiCredentialsSsid, wifiCredentialsPw);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+    IPAddress ip = WiFi.localIP();
+    Serial.print("WiFi connected - ip: ");
+    Serial.println(ip);
+    Serial.print("Stream Link: http://");
+    Serial.print(ip);
+    Serial.println(STREAM_PATH);
 
-      // setup webServer
-      webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
-      webServer.on(CAPTURE_PATH, HTTP_GET, handle_jpg);
-      webServer.on("/reset", HTTP_GET, handle_resetWiFi);
+    // setup webServer
+    webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
+    webServer.on(RESET_WIFI_PATH, HTTP_GET, handle_resetWiFi);
+    webServer.onNotFound(handleNotFound);
+    webServer.begin();
 
-      webServer.onNotFound(handleNotFound);
-      webServer.begin();
-
-      // setup webSocketServer server
-      webSocketServer.begin();
-      webSocketServer.onEvent(onWebSocketEvent);
+    // setup webSocketServer server
+    webSocketServer.begin();
+    webSocketServer.onEvent(onWebSocketEvent);
   }
 }
 
+/*
+* method to loop the esp after setup
+*/
 void loop() {
   // handle webServer data
   webServer.handleClient();
@@ -775,7 +782,7 @@ void loop() {
   // handle webSocket data
   webSocketServer.loop();
 
-
+  // motion detection logic
   int state = digitalRead(MOTION_PIN);
   if (state == HIGH && !currentMotion) {
     // motion begins

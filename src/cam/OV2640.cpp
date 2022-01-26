@@ -95,7 +95,6 @@ pixformat_t OV2640::getPixelFormat() {
 
 // set FrameSize
 void OV2640::setFrameSize(framesize_t size) {
-
     /*
     FRAMESIZE_UXGA (1600 x 1200) -> framesize=10
     FRAMESIZE_SXGA (1280 x 1024) -> framesize=9
@@ -107,7 +106,6 @@ void OV2640::setFrameSize(framesize_t size) {
     FRAMESIZE_HQVGA (240 x 176) -> framesize=3
     FRAMESIZE_QQVGA (160 x 120) -> framesize=0
     */
-   
     sensor_t * s = esp_camera_sensor_get();
     if(s->pixformat == PIXFORMAT_JPEG) {
         s->set_framesize(s, size);

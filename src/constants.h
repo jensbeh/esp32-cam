@@ -6,8 +6,9 @@ static int MOTION_PIN = 2;
 
 // Paths
 static String STREAM_PATH = "/stream";
-static String CAPTURE_PATH = "/capture";
-static String TEST_PATH = "/test";
+static String RESET_ESP_PATH = "/resetESP";
+static String RESET_WIFI_PATH = "/resetWiFi";
+static String RESET_CAM_VALUES_PATH = "/resetCamValues";
 
 // Controls
 static String CAM_CONTROLS_PATH = "camControls/";
