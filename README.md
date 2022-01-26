@@ -9,7 +9,7 @@ As soon as the ESP has been flashed with the firmware, it sets up its own "ESP c
 When the ESP is connected, this is visually displayed in the browser and the ESP automatically restarts and connects to the wifi.
 Now the [Android app](https://github.com/jensbeh/esp32-cam-android-app) can be installed and started. All further instructions can be found in the app.
 
-## Controls
+## Camera Controls
 * Framesize (1600 x 1200, 1280 x 1024, 1024 x 768, 800 x 600, 640 x 480, 352 x 288, 320 x 240, 240 x 176, 160 x 120)
 * Quality (10 to 63)
 * Brightness (-2 to 2)
