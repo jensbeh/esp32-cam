@@ -1,4 +1,4 @@
-# ESP32-CAM with motiton detector
+# ESP32-CAM with motion sensor
 
 This code turns the ESP32-CAM into a security system with motion detection:
 
