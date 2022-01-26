@@ -1,11 +1,16 @@
 #include "OV2640.h"
 #include "esp_camera.h"
 
+#include <SPIFFS.h>
+
 camera_config_t cam_config;
 
 int thisAutoWhiteBalanceState, thisExposureCtrlState, thisAgcCtrlState;
 
-void setupCam() {
+/*
+* method to setup the esp camera on startup with pins, ...
+*/
+void OV2640::setupCam() {
     cam_config.ledc_channel = LEDC_CHANNEL_0;
     cam_config.ledc_timer = LEDC_TIMER_0;
     cam_config.pin_d0 = Y2_GPIO_NUM;
@@ -26,7 +31,6 @@ void setupCam() {
     cam_config.pin_reset = RESET_GPIO_NUM;
     cam_config.xclk_freq_hz = 20000000;
     cam_config.pixel_format = PIXFORMAT_JPEG;
-
 
     // cam has PSRAM so we can set these ones
     cam_config.frame_size = FRAMESIZE_VGA;
@@ -333,15 +337,208 @@ uint8_t OV2640::getColorbar() {
     return s->status.colorbar;
 }
 
-
+/*
+* method to setup and start the esp camera and to load the camera settings
+*/
 esp_err_t OV2640::init() {
     setupCam();
 
     esp_err_t err = esp_camera_init(&cam_config);
+    
     if (err != ESP_OK) {
         printf("Camera init failed with error 0x%x", err);
         return err;
     }
 
+    loadCameraSettings();
+
     return ESP_OK;
+}
+
+/*
+* method to load the camera settings from file
+* loads saved custom settings or default settings and saves it to cam
+*/
+void OV2640::loadCameraSettings() {
+    // load custom cam settings
+    File readCustomCameraSettings = SPIFFS.open("/cameraSettings.txt", "r"); 
+    if(!readCustomCameraSettings){
+        Serial.println("Failed to open file for reading");
+        return;
+    }
+
+    String values[23] = {};
+
+    uint16_t i = 0;
+
+    Serial.println("custom:");
+    while (readCustomCameraSettings.available()) {
+        values[i] = readCustomCameraSettings.readStringUntil('\n');
+        Serial.println(values[i]);
+        i++;
+    }
+
+    // custom cam settings are not available -> load default cam settings
+    if (values[0] == "") {
+        Serial.println("cameraSettings file is emty -> loading default settings...");
+
+        File readDefaultCameraSettings = SPIFFS.open("/defaultCameraSettings.txt", "r"); 
+        if(!readDefaultCameraSettings){
+            Serial.println("Failed to open file for reading");
+            return;
+        }
+
+        uint16_t i = 0;
+
+        Serial.println("default:");
+        while (readDefaultCameraSettings.available()) {
+            values[i] = readDefaultCameraSettings.readStringUntil('\n');
+            Serial.println(values[i]);
+            i++;
+        }
+    }
+    
+    // set cam settings to cam
+    for (String valueStr : values) {
+        //Serial.println(valueStr);
+        if (valueStr.indexOf("framesize") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int8_t value = atoi(value1.c_str());
+            setFrameSize((framesize_t)value);
+        } else if (valueStr.indexOf("quality") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setQuality(value);
+        } else if (valueStr.indexOf("brightness") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int8_t value = atoi(value1.c_str());
+            setBrightness(value);
+        } else if (valueStr.indexOf("contrast") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int8_t value = atoi(value1.c_str());
+            setContrast(value);
+        } else if (valueStr.indexOf("saturation") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int8_t value = atoi(value1.c_str());
+            setSaturation(value);
+        } else if (valueStr.indexOf("specialEffect") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setSpecialEffect(value);
+        } else if (valueStr.indexOf("autoWbState") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int value = atoi(value1.c_str());
+            setAutoWhiteBalanceState(value);
+        } else if (valueStr.indexOf("autoWbGain") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setAutoWbGainState(value);
+        } else if (valueStr.indexOf("wbMode") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setWbMode(value);
+        } else if (valueStr.indexOf("exposureCtrlState") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int value = atoi(value1.c_str());
+            setExposureCtrlState(value);
+        } else if (valueStr.indexOf("aecValue") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint16_t value = atoi(value1.c_str());
+            Serial.println(value);
+            setAecValue(value);
+        } else if (valueStr.indexOf("aec2") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setAec2(value);
+        } else if (valueStr.indexOf("aeLevel") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int8_t value = atoi(value1.c_str());
+            setAeLevel(value);
+        } else if (valueStr.indexOf("agcCtrlState") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            int value = atoi(value1.c_str());
+            setAgcCtrlState(value);
+        } else if (valueStr.indexOf("agcGain") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setAgcGain(value);
+        } else if (valueStr.indexOf("gainCeiling") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setGainceiling(value);
+        } else if (valueStr.indexOf("bpc") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setBpc(value);
+        } else if (valueStr.indexOf("wpc") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setWpc(value);
+        } else if (valueStr.indexOf("rawGma") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setRawGma(value);
+        } else if (valueStr.indexOf("lenC") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setLenc(value);
+        } else if (valueStr.indexOf("hMirror") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setHmirrorState(value);
+        } else if (valueStr.indexOf("vFlip") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setVflipState(value);
+        } else if (valueStr.indexOf("colorbar") != -1) {
+            String value1 = valueStr.substring(valueStr.indexOf("=") + 1, valueStr.length());
+            uint8_t value = atoi(value1.c_str());
+            setColorbar(value);
+        }
+    }
+}
+
+/*
+* method to save the current camera settings as custom settings to file
+*/
+void OV2640::saveCameraSettings() {
+    File writeCustomCameraSettings = SPIFFS.open("/cameraSettings.txt", "w");
+    String settingsStr = "framesize=" + String(getFrameSize()) + '\n' + 
+                            "quality=" + String(getQuality()) + '\n' + 
+                            "brightness=" + String(getBrightness()) + '\n' + 
+                            "contrast=" + String(getContrast()) + '\n' + 
+                            "saturation=" + String(getSaturation()) + '\n' + 
+                            "specialEffect=" + String(getSpecialEffect()) + '\n' + 
+                            "autoWbState=" + String(getAutoWhiteBalanceState()) + '\n' + 
+                            "autoWbGain=" + String(getAwbGainSate()) + '\n' + 
+                            "wbMode=" + String(getWbMode()) + '\n' + 
+                            "exposureCtrlState=" + String(getExposureCtrlState()) + '\n' + 
+                            "aecValue=" + String(getAecValue()) + '\n' + 
+                            "aec2=" + String(getAec2()) + '\n' + 
+                            "aeLevel=" + String(getAeLevel()) + '\n' + 
+                            "agcCtrlState=" + String(getAgcCtrlState()) + '\n' + 
+                            "agcGain=" + String(getAgcGain()) + '\n' + 
+                            "gainCeiling=" + String(getGainceiling()) + '\n' + 
+                            "bpc=" + String(getBpc()) + '\n' + 
+                            "wpc=" + String(getWpc()) + '\n' + 
+                            "rawGma=" + String(getRawGma()) + '\n' + 
+                            "lenC=" + String(getLenc()) + '\n' + 
+                            "hMirror=" + String(getHmirror()) + '\n' + 
+                            "vFlip=" + String(getVflip()) + '\n' + 
+                            "colorbar=" + String(getColorbar());
+
+    writeCustomCameraSettings.println(settingsStr);
+    writeCustomCameraSettings.close();
+}
+
+/*
+* method to reset the camera settings/values and load the default ones
+*/
+void OV2640::resetValues() {
+    SPIFFS.remove("/cameraSettings.txt");
+
+    File writeWifiCredentials = SPIFFS.open("/cameraSettings.txt", "w");
+    writeWifiCredentials.close();
+
+    loadCameraSettings();
 }

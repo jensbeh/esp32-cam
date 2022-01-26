@@ -6,13 +6,14 @@ static int MOTION_PIN = 2;
 
 // Paths
 static String STREAM_PATH = "/stream";
-static String RESET_ESP_PATH = "/resetESP";
-static String RESET_WIFI_PATH = "/resetWiFi";
-static String RESET_CAM_VALUES_PATH = "/resetCamValues";
 
 // Controls
 static String CAM_CONTROLS_PATH = "camControls/";
 static String UPDATE_CAMERA_PATH = "updateCamera";
+static String FACTORY_RESET_ESP_PATH = "factoryResetESP";
+static String RESET_WIFI_PATH = "resetWiFi";
+static String RESET_CAM_VALUES_PATH = "resetCamValues";
+
 static String FRAMESIZE_PATH = "framesize="; // 0,3,4,5,6,7,8,9,10
 static String QUALITY_PATH = "quality="; //10 - 63
 static String BRIGHTNESS_PATH = "brightness="; // -2  to 2

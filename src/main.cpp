@@ -37,6 +37,7 @@ const int jhdLen = strlen(JHEADER);
 
 // methods declarations
 void sendCameraInitsToWebSocketClient(uint8_t num);
+void resetWiFiCredentials();
 
 /*
 * method to handle/save new webServerClients to steam video to
@@ -100,6 +101,25 @@ void handle_WS(uint8_t num, uint8_t * payload) {
     // websocketClient's espCamera needs to be updated
     if (message.indexOf(UPDATE_CAMERA_PATH) != -1) {
         sendCameraInitsToWebSocketClient(num);
+    }
+    // websocketClient's espCamera needs to be updated
+    else if (message.indexOf(FACTORY_RESET_ESP_PATH) != -1) {
+        // reset esp camera values
+        cam.resetValues();
+
+        // reset esp wifi values
+        resetWiFiCredentials();
+
+        // restart esp
+        ESP.restart();
+    }
+    // websocketClient's espCamera needs to be updated
+    else if (message.indexOf(RESET_CAM_VALUES_PATH) != -1) {
+        // reset esp camera values and send all new values to all webSocketClients
+        cam.resetValues();
+        for (uint8_t numId : clientIdsVector) {
+          sendCameraInitsToWebSocketClient(numId);
+        }
     }
 
     //framesize= -> 0,3,4,5,6,7,8,9,10
@@ -321,6 +341,8 @@ void handle_WS(uint8_t num, uint8_t * payload) {
       sendToWebSocketClients(message);
     }
   }
+
+  cam.saveCameraSettings();
 }
 
 /*
@@ -647,7 +669,7 @@ void handle_incomingWifiCredentials() {
 /*
 * method to reset espCameras wifi connection and restart the esp
 */
-void handle_resetWiFi() {
+void resetWiFiCredentials() {
   SPIFFS.remove("/wifiCredentials.txt");
 
   File writeWifiCredentials = SPIFFS.open("/wifiCredentials.txt", "w");
@@ -756,7 +778,7 @@ void setup() {
 
     // setup webServer
     webServer.on(STREAM_PATH, HTTP_GET, handle_new_streamClient);
-    webServer.on(RESET_WIFI_PATH, HTTP_GET, handle_resetWiFi);
+    webServer.on(RESET_WIFI_PATH, HTTP_GET, resetWiFiCredentials);
     webServer.onNotFound(handleNotFound);
     webServer.begin();
 

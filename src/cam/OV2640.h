@@ -7,6 +7,9 @@ public:
     };
 
     esp_err_t init();
+    void saveCameraSettings();
+    void resetValues();
+    
     void makeFrameBuffer();
     size_t getSize();
     uint8_t *getFrameBuffer();
@@ -74,6 +77,9 @@ public:
 
 private:
     void checkForEmptyFB();
+
+    void setupCam();
+    void loadCameraSettings();
 
     camera_fb_t *fb;
 };
