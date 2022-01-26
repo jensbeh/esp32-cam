@@ -2,7 +2,7 @@
 
 // Pins
 static int FLASHLIGHT_PIN = 4;
-static int MOTION_PIN = 2;
+static int MOTION_PIN = 2; // <------ define your data/GPIO pin e.g. GPIO2 = 2
 
 // Paths
 static String STREAM_PATH = "/stream";
@@ -24,12 +24,12 @@ static String WHITEBALANCE_STATE_PATH = "autoWhiteBalance="; // 0 = disable , 1 
 static String AUTOWB_GAIN_PATH = "autoWbGain="; // 0 = disable , 1 = enable
 static String WB_MODE_PATH = "wbMode="; // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
 static String EXPOSURE_CTRL_STATE_PATH = "exposureCtrl="; // 0 = disable , 1 = enable
-static String AEC_VALUE_PATH = "aecValue="; // 0 - 1200
+static String AEC_VALUE_PATH = "aecValue="; // 0 - 1200; only if Exposure Control is off
 static String AEC2_PATH = "aec2="; // 0 = disable , 1 = enable
 static String AE_LEVEL_PATH = "aeLevel="; // -2 to 2
 static String AGC_CTRL_STATE_PATH = "agcCtrl="; // 0 = disable , 1 = enable
-static String AGC_GAIN_PATH = "agcGain="; // 0 - 30
-static String GAINCEILING_PATH = "gainceiling="; // 0 to 6
+static String AGC_GAIN_PATH = "agcGain="; // 0 - 30; only if Agc Control is off
+static String GAINCEILING_PATH = "gainceiling="; // 0 to 6; only if Agc Control is on
 static String BPC_PATH = "bpc="; // 0 = disable , 1 = enable
 static String WPC_PATH = "wpc="; // 0 = disable , 1 = enable
 static String RAW_GMA_PATH = "rawGma="; // 0 = disable , 1 = enable
