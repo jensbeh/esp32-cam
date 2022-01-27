@@ -1,3 +1,7 @@
+// WebServer old basics - Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD -> CameraWebServer Example with Apache License Version 2.0
+// WebServer advanced -  https://github.com/arkhipenko/esp32-cam-mjpeg with BSD-3-Clause License
+// Camera Settings access - https://randomnerdtutorials.com/esp32-cam-ov2640-camera-settings/
+
 #include "esp_camera.h"
 
 class OV2640 {

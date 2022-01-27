@@ -1,3 +1,12 @@
+// WebServer old basics - Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD -> CameraWebServer Example with Apache License Version 2.0
+// WebServer advanced -  https://github.com/arkhipenko/esp32-cam-mjpeg with BSD-3-Clause License
+// WebSocketServer example - https://shawnhymel.com/1675/arduino-websocket-server-using-an-esp32/ 
+// WebSocketLibrary https://github.com/Links2004/arduinoWebSockets - including LGPL-2.1 License
+// Handle html - https://gist.github.com/GeorgeFlorian/7ce3de245e8a39434a5effc92d8f53a8
+// Useful ESP wifi functions - https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/
+// reset file on SPIFFS - https://www.reddit.com/r/arduino/comments/idbyus/how_can_i_empty_a_text_file_from_my_sd_card/
+// pinout from espCamera - https://randomnerdtutorials.com/esp32-cam-ai-thinker-pinout/
+
 #include "main.h"
 #include "cam/OV2640.h"
 #include "constants.h"
@@ -511,6 +520,7 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
 
 /*
 * method to handle check if clients disconnected and remove from wiFiClientsVector for webServer-streams
+* https://stackoverflow.com/questions/21341220/index-of-vector-iterator - to get the specific clientId from vector
 */
 void checkIfClientsDisconnect() {
   std::vector<int> disconnectedClients;
