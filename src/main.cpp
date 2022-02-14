@@ -111,7 +111,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
     if (message.indexOf(UPDATE_CAMERA_PATH) != -1) {
         sendCameraInitsToWebSocketClient(num);
     }
-    // websocketClient's espCamera needs to be updated
+    // factory reset of esp
     else if (message.indexOf(FACTORY_RESET_ESP_PATH) != -1) {
         // reset esp camera values
         cam.resetValues();
@@ -122,7 +122,7 @@ void handle_WS(uint8_t num, uint8_t * payload) {
         // restart esp
         ESP.restart();
     }
-    // websocketClient's espCamera needs to be updated
+    // reset esp camera values to default
     else if (message.indexOf(RESET_CAM_VALUES_PATH) != -1) {
         // reset esp camera values and send all new values to all webSocketClients
         cam.resetValues();

@@ -542,8 +542,8 @@ void OV2640::saveCameraSettings() {
 void OV2640::resetValues() {
     SPIFFS.remove("/cameraSettings.txt");
 
-    File writeWifiCredentials = SPIFFS.open("/cameraSettings.txt", "w");
-    writeWifiCredentials.close();
+    File writeCameraSettings = SPIFFS.open("/cameraSettings.txt", "w");
+    writeCameraSettings.close();
 
     loadCameraSettings();
 }
