@@ -63,7 +63,7 @@ Image source: [Link](https://joy-it.net/de/products/SEN-HC-SR501)
 * GND -> GND
 * High / Low Output -> GPIO2 (you can define your own pin in constants.h if you want)
 
-<img src="./images/esp-sensor-schema.svg" width="400" style="background-color: white">
+<img src="./images/esp-sensor-schema.png" width="400">
 
 Image source: Self-created
 
