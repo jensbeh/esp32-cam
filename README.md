@@ -4,6 +4,11 @@ This code turns the ESP32-CAM into a security system with motion detection:
 
 The ESP hosts a WebServer that provides the camera stream and a WebSocketServer that is used to communicate commands between the [Android app](https://github.com/jensbeh/esp32-cam-android-app) and the Esp. It also sends a notification to the [Android app](https://github.com/jensbeh/esp32-cam-android-app) with an image when it detects motion.
 
+<img src="./images/esp32-cam-with-motion-detector.jpg" width="400" style="background-color: white">
+
+Image source: Self-created
+
+
 ## Usage
 As soon as the ESP has been flashed with the firmware, it sets up its own "ESP camera" wifi network. A wifi-enabled PC must now connect to this network. Once connected, the address http://192.168.4.1/ can be loaded in the browser and the ESP lists all available networks and you can choose one of them to connect to.
 When the ESP is connected, this is visually displayed in the browser and the ESP automatically restarts and connects to the wifi.
@@ -39,7 +44,17 @@ Now the [Android app](https://github.com/jensbeh/esp32-cam-android-app) can be i
 ## Hardware
 ### Components used for this project:
 
+<img src="./images/ESP32-CAM.png" width="150">
+
+Image source: [Link](https://www.reichelt.de/de/de/entwicklerboards-esp32-kamera-ov2640-debo-cam-esp32-p266036.html?r=1)
+
 * ESP32-CAM - https://www.banggood.com/de/ESP32-CAM-MB-WiFi-MICRO-USB-ESP32-Serial-to-WiFi-ESP32-CAM-Development-Board-CH340G-5V-Bluetooth+OV2640-Camera+2_4G-Antenna-IPX-p-1847153.html?rmmds=myorder&cur_warehouse=CZ&ID=566571
+
+<img src="./images/HC-SR501.png" width="150">
+
+Image source: [Link](https://joy-it.net/de/products/SEN-HC-SR501)
+
+
 * HC-SR501 - https://www.amazon.de/gp/product/B07CNBYRQ7/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&th=1
 
 
@@ -47,6 +62,10 @@ Now the [Android app](https://github.com/jensbeh/esp32-cam-android-app) can be i
 * +Power -> 5V
 * GND -> GND
 * High / Low Output -> GPIO2 (you can define your own pin in constants.h if you want)
+
+<img src="./images/esp-sensor-schema.svg" width="400" style="background-color: white">
+
+Image source: Self-created
 
 # Compiling and uploading
 
